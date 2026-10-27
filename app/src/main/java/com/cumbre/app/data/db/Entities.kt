@@ -2,6 +2,7 @@ package com.cumbre.app.data.db
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Ignore
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.cumbre.core.geo.GeoBounds
@@ -52,6 +53,7 @@ data class RouteEntity(
     val createdAt: Long,
     val lastOpenedAt: Long? = null,
 ) {
+    @get:Ignore
     val bounds: GeoBounds?
         get() = if (minLat != null && minLon != null && maxLat != null && maxLon != null) {
             GeoBounds(minLat, minLon, maxLat, maxLon)
@@ -59,6 +61,7 @@ data class RouteEntity(
             null
         }
 
+    @get:Ignore
     val start: GeoPoint? get() = if (startLat != null && startLon != null) GeoPoint(startLat, startLon) else null
 }
 
@@ -142,5 +145,6 @@ data class OfflineMapEntity(
     /** Problema detectado en la última verificación (archivo borrado, ilegible, etc.). */
     val problem: String? = null,
 ) {
+    @get:Ignore
     val bounds: GeoBounds get() = GeoBounds(minLat, minLon, maxLat, maxLon)
 }

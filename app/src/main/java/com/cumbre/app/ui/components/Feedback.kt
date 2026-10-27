@@ -134,7 +134,11 @@ fun ConfirmDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        icon = icon?.let { { Icon(it, contentDescription = null) } },
+        icon = if (icon != null) {
+            { Icon(icon, contentDescription = null) }
+        } else {
+            null
+        },
         title = { Text(title, style = MaterialTheme.typography.titleLarge) },
         text = { Text(text, style = MaterialTheme.typography.bodyMedium) },
         confirmButton = {
