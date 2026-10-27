@@ -112,11 +112,11 @@ private fun MainScaffold(container: AppContainer) {
     // Contenido recibido desde otras apps.
     val incoming by container.incoming.pending.collectAsStateWithLifecycle()
     LaunchedEffect(incoming) {
-        when (val item = incoming) {
+        val item = incoming ?: return@LaunchedEffect
+        when (item) {
             is Incoming.GpxFile -> nav.navigate(Dest.import(item.uri))
             is Incoming.WikilocLink -> nav.navigate(Dest.wikiloc(item.url))
             Incoming.OpenTracking -> if (container.trackingManager.state.value.isActive) nav.navigate(Dest.TRACKING) { launchSingleTop = true }
-            null -> return@LaunchedEffect
         }
         container.incoming.consume(item)
     }
