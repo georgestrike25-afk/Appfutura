@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800&display=block" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,500,0..1,0&display=block" rel="stylesheet">
+<style>
+:root{--mont:#0F403A;--bosque:#267D5B;--suave:#A7C4B2;--nar:#FF8A00;--gd:#1E1E1E;--gc:#F5F7F6;--track:#D6247F;--warn:#B26A00;--warnbg:#FFF3D6;--ok:#2E7D32;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#DDE3E0;font-family:Inter,sans-serif;color:var(--gd);padding:40px 40px 50px}
+h1.board{font-family:Montserrat;font-weight:800;color:var(--mont);font-size:28px;margin-bottom:4px}
+p.sub{color:#4A5A55;margin-bottom:28px;font-size:15px}
+.row{display:flex;gap:36px;margin-bottom:40px}
+.cap{font:600 14px Inter;color:#33433E;margin-top:12px;text-align:center}
+.phone{width:360px;height:780px;border-radius:38px;background:#111;padding:10px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+.scr{width:100%;height:100%;border-radius:30px;overflow:hidden;position:relative;background:var(--gc);display:flex;flex-direction:column}
+.status{height:30px;display:flex;justify-content:space-between;align-items:center;padding:0 22px;font:600 12px Inter;flex:none}
+.ms{font-family:'Material Symbols Rounded';font-weight:500;font-size:22px;line-height:1;font-feature-settings:'liga';-webkit-font-smoothing:antialiased;display:inline-block}
+.fill{font-variation-settings:'FILL' 1}
+.mont{font-family:Montserrat}
+/* nav bar */
+.nav{flex:none;height:72px;background:#fff;display:flex;justify-content:space-around;align-items:center;border-top:1px solid #E3E8E5}
+.nav div{display:flex;flex-direction:column;align-items:center;gap:4px;font:500 11.5px Inter;color:#55615D;width:70px}
+.nav .pill{width:56px;height:30px;border-radius:15px;display:flex;align-items:center;justify-content:center}
+.nav .on{color:var(--mont);font-weight:700}.nav .on .pill{background:#D3E6DA}
+.dark .nav{background:#16201E;border-color:#26312E}.dark .nav div{color:#9DAAA5}.dark .nav .on{color:#CFE8DA}.dark .nav .on .pill{background:#24493F}
+.topbar{flex:none;background:var(--mont);color:#fff;padding:6px 18px 16px}
+.btn{height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;gap:8px;font:600 15.5px Inter}
+.btn.pri{background:var(--bosque);color:#fff}
+.btn.sec{background:#fff;color:var(--mont);border:1.5px solid var(--suave)}
+.chip{padding:7px 13px;border-radius:10px;font:500 13px Inter;border:1px solid #C9D6CF;background:#fff;color:#33433E;white-space:nowrap;display:flex;align-items:center;gap:4px}
+.chip.on{background:var(--mont);color:#fff;border-color:var(--mont)}
+.card{background:#fff;border-radius:16px;box-shadow:0 1px 3px rgba(15,64,58,.08)}
+.stat b{display:block;font:700 17px Inter;color:var(--gd)} .stat span{font:500 11.5px Inter;color:#5E6B66}
+.tag{display:inline-flex;align-items:center;gap:3px;font:600 11px Inter;padding:3px 8px;border-radius:8px}
+.tag.off{background:#E1EFE6;color:#1E6B4B}.tag.nooff{background:#F0F1F0;color:#5E6B66}
+.fab{width:46px;height:46px;border-radius:14px;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.18);color:var(--mont)}
+.dark .fab{background:#1D2826;color:#E2EEE8}
+</style></head><body>
+<h1 class="board">Cumbre · Propuesta de interfaz v1</h1>
+<p class="sub">Mockups estáticos para validar el estilo antes de programar. El fondo cartográfico es ilustrativo: en la app lo dibuja Mapsforge a partir del mapa offline instalado.</p>
+
+<div class="row">
+<!-- 1 BIENVENIDA -->
+<div><div class="phone"><div class="scr" style="background:var(--mont);color:#fff">
+ <div class="status" style="color:#fff"><span>9:41</span><span class="ms" style="font-size:16px">signal_cellular_alt</span></div>
+ <svg viewBox="0 0 340 330" style="width:100%;flex:none" id="hero"></svg>
+ <div style="padding:6px 28px 0;flex:1;display:flex;flex-direction:column">
+  <div style="display:flex;align-items:center;gap:12px"><svg class="logo" width="52" height="52"></svg>
+   <div><div class="mont" style="font-weight:800;font-size:30px;letter-spacing:.5px">Cumbre</div></div></div>
+  <div class="mont" style="font-weight:700;font-size:21px;margin-top:18px;color:#fff">Tu camino, en tus manos.</div>
+  <p style="font-size:15px;line-height:1.5;color:#C9DDD2;margin-top:10px">Importá rutas GPX de Wikiloc o de tus amigos, preparalas y seguilas con GPS y mapas sin conexión, aunque no haya señal.</p>
+  <div style="flex:1"></div>
+  <div class="btn" style="background:var(--nar);color:#1E1E1E;margin-bottom:12px">Comenzar</div>
+  <div style="text-align:center;font-size:12.5px;color:#9FBFB0;margin-bottom:22px">Sin cuentas ni registro. Tus datos quedan en tu teléfono.</div>
+ </div>
+</div></div><div class="cap">1 · Bienvenida</div></div>
+
+<!-- 2 MAPA / INICIO -->
+<div><div class="phone"><div class="scr">
+ <div style="position:absolute;inset:0"><svg class="map" data-track="0" viewBox="0 0 340 760" preserveAspectRatio="xMidYMid slice" style="width:100%;height:100%"></svg></div>
+ <div class="status" style="position:relative"><span>9:41</span><span class="ms" style="font-size:16px">signal_cellular_alt</span></div>
+ <div style="position:relative;margin:4px 14px 0;display:flex;gap:8px">
+  <div class="card" style="flex:1;height:46px;border-radius:14px;display:flex;align-items:center;gap:10px;padding:0 14px;color:#5E6B66;font-size:14px"><svg class="logo" width="24" height="24"></svg>Cumbre</div>
+  <div class="card" style="height:46px;border-radius:14px;display:flex;align-items:center;gap:6px;padding:0 12px;font:600 12px Inter;color:#1E6B4B"><span class="ms fill" style="font-size:18px">cloud_off</span>Offline</div>
+ </div>
+ <div style="position:absolute;right:14px;top:300px;display:flex;flex-direction:column;gap:10px">
+  <div class="fab"><span class="ms">layers</span></div><div class="fab"><span class="ms">explore</span></div><div class="fab"><span class="ms fill" style="color:var(--nar)">my_location</span></div></div>
+ <div style="flex:1"></div>
+ <div style="position:relative;background:#fff;border-radius:24px 24px 0 0;padding:10px 16px 14px;box-shadow:0 -4px 16px rgba(0,0,0,.12)">
+  <div style="width:36px;height:4px;border-radius:2px;background:#CBD3CF;margin:0 auto 12px"></div>
+  <div class="card" style="background:var(--gc);box-shadow:none;padding:12px;display:flex;gap:12px;align-items:center">
+   <svg class="thumb" data-t="0" width="54" height="54" style="border-radius:10px"></svg>
+   <div style="flex:1"><div style="font:500 11.5px Inter;color:#5E6B66">Continuar ruta reciente</div><div class="mont" style="font-weight:700;font-size:15px">Cerro Champaquí</div><div style="font-size:12.5px;color:#5E6B66">18,4 km · ↑ 1.142 m</div></div>
+   <span class="ms" style="color:var(--bosque)">arrow_forward</span></div>
+  <div style="display:flex;gap:10px;margin-top:12px">
+   <div class="btn pri" style="flex:1.3;height:48px;font-size:14.5px"><span class="ms">upload_file</span>Importar GPX</div>
+   <div class="btn sec" style="flex:1;height:48px;font-size:14px"><span class="ms">download_for_offline</span>Mapas</div>
+  </div>
+ </div>
+ <div class="nav" style="position:relative"><div class="on"><div class="pill"><span class="ms fill">map</span></div>Mapa</div><div><div class="pill"><span class="ms">route</span></div>Rutas</div><div><div class="pill"><span class="ms">directions_walk</span></div>Actividad</div><div><div class="pill"><span class="ms">more_horiz</span></div>Más</div></div>
+</div></div><div class="cap">2 · Mapa (inicio con accesos rápidos)</div></div>
+
+<!-- 3 RUTAS -->
+<div><div class="phone"><div class="scr">
+ <div class="topbar"><div class="status" style="padding:0 4px;color:#fff"><span>9:41</span><span class="ms" style="font-size:16px">signal_cellular_alt</span></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px"><div class="mont" style="font-weight:700;font-size:24px">Rutas</div><span class="ms">sort</span></div>
+  <div style="margin-top:12px;height:44px;border-radius:12px;background:rgba(255,255,255,.12);display:flex;align-items:center;gap:10px;padding:0 14px;color:#C9DDD2;font-size:14px"><span class="ms" style="font-size:20px">search</span>Buscar en mis rutas</div>
+ </div>
+ <div style="display:flex;gap:8px;padding:14px 16px 6px;overflow:hidden"><div class="chip on">Todas</div><div class="chip">Mis rutas</div><div class="chip">Importadas</div><div class="chip">Favoritas</div><div class="chip">Recientes</div></div>
+ <div style="padding:8px 16px;display:flex;flex-direction:column;gap:12px;flex:1;overflow:hidden" id="cards"></div>
+ <div style="position:absolute;right:16px;bottom:88px;height:54px;border-radius:16px;background:var(--bosque);color:#fff;display:flex;align-items:center;gap:8px;padding:0 18px;font:600 14.5px Inter;box-shadow:0 4px 12px rgba(38,125,91,.4)"><span class="ms">add</span>Importar GPX</div>
+ <div class="nav"><div><div class="pill"><span class="ms">map</span></div>Mapa</div><div class="on"><div class="pill"><span class="ms fill">route</span></div>Rutas</div><div><div class="pill"><span class="ms">directions_walk</span></div>Actividad</div><div><div class="pill"><span class="ms">more_horiz</span></div>Más</div></div>
+</div></div><div class="cap">3 · Biblioteca de rutas</div></div>
+</div>
+
+<div class="row">
+<!-- 4 DETALLE -->
+<div><div class="phone"><div class="scr">
+ <div style="position:relative;height:270px;flex:none"><svg class="map" data-track="1" viewBox="0 0 340 270" preserveAspectRatio="xMidYMid slice" style="width:100%;height:100%"></svg>
+  <div class="status" style="position:absolute;top:0;left:0;right:0"><span>9:41</span><span class="ms" style="font-size:16px">signal_cellular_alt</span></div>
+  <div style="position:absolute;top:36px;left:14px;right:14px;display:flex;justify-content:space-between"><div class="fab" style="width:40px;height:40px;border-radius:20px"><span class="ms">arrow_back</span></div><div style="display:flex;gap:8px"><div class="fab" style="width:40px;height:40px;border-radius:20px"><span class="ms fill" style="color:var(--nar)">star</span></div><div class="fab" style="width:40px;height:40px;border-radius:20px"><span class="ms">more_vert</span></div></div></div></div>
+ <div style="flex:1;padding:14px 18px 0;overflow:hidden">
+  <div style="display:flex;gap:6px;margin-bottom:6px"><span class="tag off"><span class="ms fill" style="font-size:13px">check_circle</span>Mapa offline: Córdoba</span><span class="tag nooff">Wikiloc</span></div>
+  <div class="mont" style="font-weight:700;font-size:22px">Cerro Champaquí por Los Reartes</div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px 8px;margin-top:10px">
+   <div class="stat"><b>18,4 km</b><span>Distancia</span></div><div class="stat"><b>↑ 1.142 m</b><span>Desnivel +</span></div><div class="stat"><b>↓ 1.138 m</b><span>Desnivel −</span></div>
+   <div class="stat"><b>7 h 20 min</b><span>Duración est.</span></div><div class="stat"><b>1.640 m</b><span>Altitud mín.</span></div><div class="stat"><b>2.790 m</b><span>Altitud máx.</span></div></div>
+  <div style="font:600 13px Inter;margin:12px 0 4px;color:#33433E">Perfil de elevación</div>
+  <svg id="profile" viewBox="0 0 324 92" style="width:100%;height:80px"></svg>
+  <div style="margin-top:10px;background:var(--warnbg);border-radius:12px;padding:10px 12px;display:flex;gap:10px;font-size:12.5px;color:#5C3D00;line-height:1.35"><span class="ms" style="color:var(--warn);font-size:20px">warning</span><div><b>1 aviso de calidad:</b> salto de 640 m entre dos puntos cerca del km 11,2. Puede faltar un tramo.</div></div>
+ </div>
+ <div style="padding:12px 18px 18px;display:flex;gap:10px;background:var(--gc)"><div class="btn sec" style="width:52px"><span class="ms">ios_share</span></div><div class="btn pri" style="flex:1"><span class="ms fill">navigation</span>Iniciar recorrido</div></div>
+</div></div><div class="cap">4 · Preparación / detalle de ruta</div></div>
+
+<!-- 5 NAVEGACION (oscuro) -->
+<div><div class="phone"><div class="scr dark" style="background:#0F1716">
+ <div style="position:absolute;inset:0"><svg class="map dk" data-track="2" viewBox="0 0 340 760" preserveAspectRatio="xMidYMid slice" style="width:100%;height:100%"></svg></div>
+ <div class="status" style="position:relative;color:#E2EEE8"><span>9:41</span><span class="ms" style="font-size:16px">signal_cellular_alt</span></div>
+ <div style="position:relative;margin:6px 14px 0;display:flex;justify-content:space-between">
+  <div style="background:#1D2826;color:#CFE8DA;border-radius:12px;padding:8px 12px;font:600 12.5px Inter;display:flex;gap:6px;align-items:center"><span class="ms fill" style="font-size:17px;color:#6FCF97">gps_fixed</span>GPS ±4 m</div>
+  <div style="background:#1D2826;color:#CFE8DA;border-radius:12px;padding:8px 12px;font:600 12.5px Inter;display:flex;gap:6px;align-items:center"><span class="ms" style="font-size:17px">cloud_off</span>Sin conexión</div></div>
+ <div style="position:absolute;right:14px;top:330px;display:flex;flex-direction:column;gap:10px"><div class="fab"><span class="ms">explore</span></div><div class="fab"><span class="ms fill" style="color:var(--nar)">my_location</span></div></div>
+ <div style="flex:1"></div>
+ <div style="position:relative;background:#16201E;color:#E9F2EE;border-radius:24px 24px 0 0;padding:10px 18px 16px">
+  <div style="width:36px;height:4px;border-radius:2px;background:#3A4744;margin:0 auto 12px"></div>
+  <div style="display:flex;justify-content:space-between;align-items:baseline"><div><div style="font:700 34px Inter;letter-spacing:-.5px">7,82 <span style="font-size:17px;color:#9DAAA5">km</span></div><div style="font-size:12px;color:#9DAAA5">Recorrido · quedan 10,6 km</div></div>
+   <div style="text-align:right"><div style="font:700 24px Inter">2:51:08</div><div style="font-size:12px;color:#9DAAA5">Tiempo</div></div></div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0;padding:12px 0;border-top:1px solid #26312E;border-bottom:1px solid #26312E">
+   <div><div style="font:700 16px Inter">3,4 <small style="font-size:11px;color:#9DAAA5">km/h</small></div><div style="font-size:11px;color:#9DAAA5">Vel. actual</div></div>
+   <div><div style="font:700 16px Inter">2.214 <small style="font-size:11px;color:#9DAAA5">m</small></div><div style="font-size:11px;color:#9DAAA5">Altitud</div></div>
+   <div><div style="font:700 16px Inter">↑ 586 <small style="font-size:11px;color:#9DAAA5">m</small></div><div style="font-size:11px;color:#9DAAA5">Desnivel</div></div></div>
+  <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:#CFE8DA;margin-bottom:12px"><span class="ms fill" style="color:var(--nar)">flag</span>Refugio Los Linderos · a 1,3 km</div>
+  <div style="display:flex;gap:10px"><div class="btn" style="flex:1;background:#24302D;color:#E9F2EE"><span class="ms fill">pause</span>Pausar</div><div class="btn" style="flex:1;background:#3A2020;color:#FFB4AB"><span class="ms fill">stop</span>Finalizar</div></div>
+ </div>
+</div></div><div class="cap">5 · Navegación GPS (modo oscuro)</div></div>
+
+<!-- 6 MAPAS OFFLINE -->
+<div><div class="phone"><div class="scr">
+ <div class="topbar"><div class="status" style="padding:0 4px;color:#fff"><span>9:41</span><span class="ms" style="font-size:16px">signal_cellular_alt</span></div>
+  <div style="display:flex;align-items:center;gap:12px;margin-top:4px"><span class="ms">arrow_back</span><div class="mont" style="font-weight:700;font-size:21px">Mapas sin conexión</div></div></div>
+ <div style="padding:16px;display:flex;flex-direction:column;gap:12px;flex:1">
+  <div class="card" style="padding:14px 16px"><div style="display:flex;justify-content:space-between;font-size:13px;color:#5E6B66"><span>Espacio usado por mapas</span><b style="color:var(--gd)">412 MB</b></div>
+   <div style="height:8px;border-radius:4px;background:#E3E9E6;margin-top:10px;overflow:hidden"><div style="width:18%;height:100%;background:var(--bosque)"></div></div><div style="font-size:11.5px;color:#5E6B66;margin-top:6px">2,1 GB libres en el teléfono</div></div>
+  <div style="font:600 13px Inter;color:#33433E;margin-top:4px">Instalados</div>
+  <div class="card" style="padding:14px 16px;display:flex;gap:12px;align-items:center"><div style="width:44px;height:44px;border-radius:12px;background:#E1EFE6;display:flex;align-items:center;justify-content:center;color:var(--bosque)"><span class="ms fill">map</span></div><div style="flex:1"><div style="font:600 15px Inter">Córdoba (Argentina)</div><div style="font-size:12.5px;color:#5E6B66">cordoba.map · 287 MB · Mapsforge</div><span class="tag off" style="margin-top:6px"><span class="ms fill" style="font-size:13px">check_circle</span>Cubre 3 de tus rutas</span></div><span class="ms" style="color:#5E6B66">delete</span></div>
+  <div class="card" style="padding:14px 16px;display:flex;gap:12px;align-items:center"><div style="width:44px;height:44px;border-radius:12px;background:#E1EFE6;display:flex;align-items:center;justify-content:center;color:var(--bosque)"><span class="ms fill">map</span></div><div style="flex:1"><div style="font:600 15px Inter">Mendoza (Argentina)</div><div style="font-size:12.5px;color:#5E6B66">mendoza.map · 125 MB · Mapsforge</div></div><span class="ms" style="color:#5E6B66">delete</span></div>
+  <div style="background:#FDECEA;border-radius:12px;padding:10px 12px;display:flex;gap:10px;font-size:12.5px;color:#7A1F1A;line-height:1.35"><span class="ms" style="color:#C62828;font-size:20px">error</span><div><b>patagonia.map no se pudo abrir.</b> El archivo no es un mapa Mapsforge válido (versión 3–5).</div></div>
+  <div style="flex:1"></div>
+  <div class="btn pri"><span class="ms">add</span>Importar archivo .map</div>
+  <div style="font-size:12px;color:#5E6B66;text-align:center;line-height:1.4">¿De dónde saco mapas? Ver guía · Datos © colaboradores de OpenStreetMap</div>
+ </div>
+</div></div><div class="cap">6 · Mapas sin conexión</div></div>
+</div>
+
+<script>
+const NS='http://www.w3.org/2000/svg';
+function logo(s){return `<svg viewBox="0 0 108 108" width="${s}" height="${s}"><rect width="108" height="108" rx="26" fill="#0F403A"/>
+<path d="M14 82 L42 36 L56 56 L68 40 L94 82 Z" fill="#fff"/>
+<path d="M42 36 L50 49 L44 47 L38 52 L34 49 Z" fill="#0F403A" opacity=".18"/>
+<path d="M30 82 C40 74 48 76 54 68 C60 60 52 56 60 50 C64 47 66 44 68 41" fill="none" stroke="#A7C4B2" stroke-width="5" stroke-linecap="round"/>
+<path d="M68 14 c-8 0 -13 6 -13 13 c0 9 13 21 13 21 s13 -12 13 -21 c0 -7 -5 -13 -13 -13z" fill="#FF8A00"/><circle cx="68" cy="27" r="4.6" fill="#0F403A"/></svg>`}
+document.querySelectorAll('svg.logo').forEach(e=>{e.outerHTML=logo(e.getAttribute('width'))});
+// hero illustration
+document.getElementById('hero').innerHTML=`
+<defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0B302C"/><stop offset="1" stop-color="#1A5A4D"/></linearGradient></defs>
+<rect width="340" height="330" fill="url(#sky)"/><circle cx="250" cy="90" r="34" fill="#FF8A00" opacity=".9"/>
+<path d="M0 230 L70 150 L110 190 L170 100 L230 175 L270 140 L340 210 L340 330 L0 330Z" fill="#2E6F5E"/>
+<path d="M170 100 L190 125 L178 122 L168 132 L156 120 Z M70 150 L82 164 L70 162 L60 168Z" fill="#E8F1EC"/>
+<path d="M0 270 L90 205 L150 245 L220 195 L340 265 L340 330 L0 330Z" fill="#1F5848"/>
+<path d="M0 300 L120 260 L200 285 L340 250 L340 330 L0 330Z" fill="#0F403A"/>
+<path d="M120 330 C140 300 175 300 170 270 C165 245 205 235 215 205" fill="none" stroke="#A7C4B2" stroke-width="3" stroke-dasharray="2 7" stroke-linecap="round"/>`;
+// seeded noise
+function rnd(seed){let s=seed;return()=>{s=(s*9301+49297)%233280;return s/233280}}
+const tracks=[
+ [[60,700],[90,640],[80,590],[120,540],[150,500],[140,450],[180,410],[210,360],[200,310],[240,270],[260,220]],
+ [[40,240],[70,215],[90,190],[85,160],[120,140],[150,120],[170,95],[200,95],[225,90],[245,110],[262,128]],
+ [[70,760],[100,690],[95,630],[135,580],[165,540],[160,480],[195,440],[225,390],[215,330],[255,290],[275,230]]];
+function smooth(p){let d=`M${p[0][0]} ${p[0][1]}`;for(let i=1;i<p.length;i++){const a=p[i-1],b=p[i];const mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2;d+=` Q${a[0]} ${a[1]} ${mx} ${my}`}const l=p[p.length-1];return d+` L${l[0]} ${l[1]}`}
+document.querySelectorAll('svg.map').forEach(svg=>{
+ const dk=svg.classList.contains('dk');const vb=svg.viewBox.baseVal;const W=vb.width,H=vb.height;const r=rnd(7+W);
+ const C=dk?{bg:'#1A2321',for:'#1F3229',con:'#33443F',conm:'#46584F',wat:'#1D3A4D',road:'#4B5653',txt:'#8FA19A'}:{bg:'#F2F1E8',for:'#D4E6CC',con:'#C9BFA4',conm:'#B3A684',wat:'#A9D3EA',road:'#FFFFFF',txt:'#6C766F'};
+ let g=`<rect width="${W}" height="${H}" fill="${C.bg}"/>`;
+ for(let i=0;i<9;i++){const cx=r()*W,cy=r()*H,rr=40+r()*80;let d='';for(let a=0;a<=12;a++){const t=a/12*Math.PI*2,k=rr*(0.7+r()*0.5);d+=(a?'L':'M')+(cx+Math.cos(t)*k).toFixed(1)+' '+(cy+Math.sin(t)*k).toFixed(1)}g+=`<path d="${d}Z" fill="${C.for}" stroke-linejoin="round"/>`}
+ const peaks=[[W*.72,H*.3],[W*.35,H*.58]];
+ peaks.forEach((pk,pi)=>{for(let k=1;k<14;k++){let d='';const R=k*(W/22);for(let a=0;a<=48;a++){const t=a/48*Math.PI*2;const n=1+0.18*Math.sin(t*3+pi+k*.3)+0.08*Math.sin(t*7+k);d+=(a?'L':'M')+(pk[0]+Math.cos(t)*R*n*1.1).toFixed(1)+' '+(pk[1]+Math.sin(t)*R*n*.85).toFixed(1)}g+=`<path d="${d}Z" fill="none" stroke="${k%5==0?C.conm:C.con}" stroke-width="${k%5==0?1.1:.6}"/>`}});
+ g+=`<path d="M-10 ${H*.85} C ${W*.3} ${H*.78}, ${W*.5} ${H*.95}, ${W+10} ${H*.7}" fill="none" stroke="${C.wat}" stroke-width="5"/>`;
+ g+=`<path d="M-10 ${H*.15} C ${W*.4} ${H*.25}, ${W*.6} ${H*.05}, ${W+10} ${H*.2}" fill="none" stroke="${C.road}" stroke-width="4"/><path d="M-10 ${H*.15} C ${W*.4} ${H*.25}, ${W*.6} ${H*.05}, ${W+10} ${H*.2}" fill="none" stroke="${dk?'#5E6A66':'#E0D3B8'}" stroke-width="1" />`;
+ g+=`<text x="${peaks[0][0]-20}" y="${peaks[0][1]+4}" font-family="Inter" font-size="10" fill="${C.txt}" font-style="italic">▲ 2.790</text>`;
+ const ti=+svg.dataset.track;let p=tracks[ti];
+ if(ti==1){}
+ const path=smooth(p);
+ g+=`<path d="${path}" fill="none" stroke="${dk?'#000':'#fff'}" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" opacity=".55"/>`;
+ g+=`<path d="${path}" fill="none" stroke="#D6247F" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>`;
+ if(ti==2){const done=smooth(p.slice(0,7));g+=`<path d="${done}" fill="none" stroke="#7FB8FF" stroke-width="3" stroke-dasharray="1 6" stroke-linecap="round"/>`}
+ const s=p[0],e=p[p.length-1];
+ g+=`<circle cx="${s[0]}" cy="${s[1]}" r="8" fill="#267D5B" stroke="#fff" stroke-width="3"/>`;
+ g+=`<g transform="translate(${e[0]},${e[1]})"><circle r="9" fill="#1E1E1E" stroke="#fff" stroke-width="3"/><path d="M-3 -4 L-3 5 M-3 -4 L4 -2 L-3 1" stroke="#fff" stroke-width="1.6" fill="none"/></g>`;
+ const wp=ti==1?[p[6]]:[p[7]];wp.forEach(w=>{g+=`<g transform="translate(${w[0]+14},${w[1]-4})"><circle r="9" fill="#fff" stroke="#0F403A" stroke-width="2"/><path d="M-3 4 L-3 -5 L4 -3 L-3 -1" stroke="#0F403A" stroke-width="1.6" fill="none"/></g>`});
+ if(ti!=1){const me=ti==2?p[6]:[150,610];const mx=ti==2?me[0]+2:me[0],my=me[1];
+  g+=`<circle cx="${mx}" cy="${my}" r="28" fill="#FF8A00" opacity=".18"/><g transform="translate(${mx},${my}) rotate(${ti==2?-25:0})">${ti==2?'<path d="M0 -15 L10 10 L0 5 L-10 10Z" fill="#FF8A00" stroke="#fff" stroke-width="2.5" stroke-linejoin="round"/>':'<circle r="9" fill="#FF8A00" stroke="#fff" stroke-width="3"/>'}</g>`}
+ g+=`<text x="${W-6}" y="${H-6}" text-anchor="end" font-family="Inter" font-size="7.5" fill="${C.txt}">© OpenStreetMap</text>`;
+ svg.innerHTML=g});
+// profile
+(function(){const r=rnd(3);let pts=[];for(let i=0;i<=60;i++){const x=i/60;let y=Math.sin(x*Math.PI)*0.85+0.08*Math.sin(x*20)+0.04*r();pts.push([8+x*312,82-y*70])}
+ let d='M'+pts.map(p=>p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' L');
+ document.getElementById('profile').innerHTML=`<defs><linearGradient id="pg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#267D5B" stop-opacity=".45"/><stop offset="1" stop-color="#267D5B" stop-opacity=".04"/></linearGradient></defs>
+ <line x1="8" x2="320" y1="12" y2="12" stroke="#E1E6E3" stroke-dasharray="3 3"/><line x1="8" x2="320" y1="47" y2="47" stroke="#E1E6E3" stroke-dasharray="3 3"/><line x1="8" x2="320" y1="82" y2="82" stroke="#C9D2CE"/>
+ <path d="${d} L320 82 L8 82Z" fill="url(#pg)"/><path d="${d}" fill="none" stroke="#267D5B" stroke-width="2"/>
+ <text x="10" y="10" font-size="9" fill="#5E6B66" font-family="Inter">2.800 m</text><text x="10" y="80" font-size="9" fill="#5E6B66" font-family="Inter">1.600 m</text><text x="318" y="92" font-size="9" fill="#5E6B66" font-family="Inter" text-anchor="end">18,4 km</text>
+ <line x1="${8+0.61*312}" x2="${8+0.61*312}" y1="10" y2="82" stroke="#B26A00" stroke-width="1.2" stroke-dasharray="2 2"/>`})();
+// cards
+const routes=[["Cerro Champaquí por Los Reartes","18,4 km","1.142 m","7 h 20 min","Wikiloc",1,1],["Quebrada del Condorito","11,2 km","486 m","3 h 50 min","Importada",1,0],["Cerro Uritorco","9,6 km","1.010 m","5 h 10 min","Mi actividad",0,1]];
+document.getElementById('cards').innerHTML=routes.map((c,i)=>`<div class="card" style="padding:12px;display:flex;gap:12px">
+ <svg class="thumb" data-t="${i}" width="84" height="84" style="border-radius:12px;flex:none"></svg>
+ <div style="flex:1;min-width:0"><div style="display:flex;justify-content:space-between;gap:6px"><div class="mont" style="font-weight:700;font-size:15px;line-height:1.25">${c[0]}</div>${c[6]?'<span class="ms fill" style="color:var(--nar);font-size:20px">star</span>':''}</div>
+ <div style="display:flex;gap:10px;margin-top:6px;font:600 13px Inter;white-space:nowrap"><span>${c[1]}</span><span style="color:#267D5B">↑ ${c[2]}</span><span style="color:#5E6B66;font-weight:500">${c[3]}</span></div>
+ <div style="display:flex;gap:6px;margin-top:8px">${c[5]?'<span class="tag off"><span class="ms fill" style="font-size:13px">offline_pin</span>Offline</span>':'<span class="tag nooff"><span class="ms" style="font-size:13px">cloud_off</span>Sin mapa</span>'}<span class="tag nooff">${c[4]}</span></div></div></div>`).join('');
+document.querySelectorAll('svg.thumb').forEach(s=>{const i=+s.dataset.t;const r=rnd(11+i*5);let p=[[10,70]];for(let k=1;k<9;k++)p.push([10+k*8+r()*6,70-k*7+r()*10-5]);
+ s.setAttribute('viewBox','0 0 84 84');s.innerHTML=`<rect width="84" height="84" fill="#E9EFE6"/>${[18,30,42].map(R=>`<ellipse cx="55" cy="28" rx="${R}" ry="${R*.75}" fill="none" stroke="#CFC6AC" stroke-width=".7"/>`).join('')}
+ <path d="${smooth(p)}" fill="none" stroke="#D6247F" stroke-width="3" stroke-linecap="round"/><circle cx="${p[0][0]}" cy="${p[0][1]}" r="3.5" fill="#267D5B" stroke="#fff" stroke-width="1.5"/><circle cx="${p[8][0]}" cy="${p[8][1]}" r="3.5" fill="#1E1E1E" stroke="#fff" stroke-width="1.5"/>`});
+</script></body></html>

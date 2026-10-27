@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<gpx version="1.0" creator="GPS antiguo" xmlns="http://www.topografix.com/GPX/1/0">
+  <name>Ruta vieja</name>
+  <url>https://es.wikiloc.com/rutas-senderismo/quebrada-del-condorito-1234</url>
+  <rte><name>Condorito</name>
+    <rtept lat="-31.60" lon="-64.70"><ele>1900</ele></rtept>
+    <rtept lat="-31.61" lon="-64.71"><ele>1950</ele></rtept>
+    <rtept lat="-31.62" lon="-64.72"><ele>1880</ele></rtept>
+  </rte>
+</gpx>
