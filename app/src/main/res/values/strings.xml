@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Cumbre</string>
+    <string name="slogan">Tu camino, en tus manos.</string>
+    <string name="channel_tracking">Recorrido en curso</string>
+    <string name="channel_tracking_desc">Muestra la actividad mientras Cumbre registra tu recorrido con GPS.</string>
+    <string name="channel_alerts">Avisos de desvío</string>
+    <string name="channel_alerts_desc">Te avisa si te alejás del recorrido que estás siguiendo.</string>
+</resources>

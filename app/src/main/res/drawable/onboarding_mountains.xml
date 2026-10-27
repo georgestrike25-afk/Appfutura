@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ilustración vectorial de la pantalla de bienvenida (sin imágenes externas). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="340dp" android:height="330dp" android:viewportWidth="340" android:viewportHeight="330">
+    <path android:pathData="M0,0h340v330h-340z">
+        <aapt:attr name="android:fillColor">
+            <gradient android:type="linear" android:startX="0" android:startY="0" android:endX="0" android:endY="330"
+                android:startColor="#0B302C" android:endColor="#1A5A4D" />
+        </aapt:attr>
+    </path>
+    <path android:fillColor="#FF8A00" android:fillAlpha="0.9" android:pathData="M216,90 a34,34 0 1,0 68,0 a34,34 0 1,0 -68,0 Z" />
+    <path android:fillColor="#2E6F5E" android:pathData="M0,230 L70,150 L110,190 L170,100 L230,175 L270,140 L340,210 L340,330 L0,330 Z" />
+    <path android:fillColor="#E8F1EC" android:pathData="M170,100 L190,125 L178,122 L168,132 L156,120 Z M70,150 L82,164 L70,162 L60,168 Z" />
+    <path android:fillColor="#1F5848" android:pathData="M0,270 L90,205 L150,245 L220,195 L340,265 L340,330 L0,330 Z" />
+    <path android:fillColor="#0F403A" android:pathData="M0,300 L120,260 L200,285 L340,250 L340,330 L0,330 Z" />
+    <path android:strokeColor="#A7C4B2" android:strokeWidth="3" android:strokeLineCap="round"
+        android:pathData="M120,330 C140,300 175,300 170,270 C165,245 205,235 215,205" />
+</vector>

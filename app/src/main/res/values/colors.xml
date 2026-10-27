@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="cumbre_verde_montana">#0F403A</color>
+    <color name="cumbre_verde_bosque">#267D5B</color>
+    <color name="cumbre_verde_suave">#A7C4B2</color>
+    <color name="cumbre_naranja">#FF8A00</color>
+    <color name="cumbre_gris_oscuro">#1E1E1E</color>
+    <color name="cumbre_gris_claro">#F5F7F6</color>
+    <color name="cumbre_blanco">#FFFFFF</color>
+    <color name="ic_launcher_background">#0F403A</color>
+</resources>
