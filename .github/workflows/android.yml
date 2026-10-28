@@ -9,6 +9,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -43,3 +45,16 @@ jobs:
             core/build/reports/tests/
             app/build/reports/
           if-no-files-found: ignore
+
+      - name: Publicar APK de prueba (enlace directo)
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp app/build/outputs/apk/debug/app-debug.apk cumbre-debug.apk
+          gh release delete debug-latest --yes --cleanup-tag || true
+          gh release create debug-latest cumbre-debug.apk \
+            --prerelease \
+            --target "${{ github.sha }}" \
+            --title "Cumbre – versión de prueba" \
+            --notes "APK de depuración generado automáticamente desde ${{ github.ref_name }} (${{ github.sha }}). Descargá cumbre-debug.apk desde el celular e instalalo."
