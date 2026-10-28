@@ -47,7 +47,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- «Abrir con Cumbre» para archivos GPX -->
+            <!--
+              «Abrir con Cumbre»: rutas GPX, mapas Mapsforge (.map) y relieve SRTM (.hgt / .zip).
+              Muchas apps entregan estos archivos como binario genérico, por eso también se
+              aceptan tipos amplios: el contenido se identifica al abrirlo (IncomingFileDetector)
+              y lo que no es compatible se rechaza con un mensaje.
+            -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -56,33 +61,45 @@
                 <data android:scheme="file" />
                 <data android:mimeType="application/gpx+xml" />
                 <data android:mimeType="application/gpx" />
+                <data android:mimeType="application/x-gpx" />
+                <data android:mimeType="application/x-gpx+xml" />
+                <data android:mimeType="application/vnd.gpx" />
                 <data android:mimeType="text/gpx" />
                 <data android:mimeType="text/xml" />
                 <data android:mimeType="application/xml" />
+                <data android:mimeType="application/octet-stream" />
+                <data android:mimeType="application/zip" />
+                <data android:mimeType="application/x-zip-compressed" />
+                <data android:mimeType="application/binary" />
             </intent-filter>
-            <!-- Archivos .gpx sin tipo MIME específico (gestores de archivos) -->
+            <!-- Archivos sin tipo MIME reconocido: se ofrece Cumbre según la extensión. -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:scheme="content" />
                 <data android:scheme="file" />
                 <data android:host="*" />
-                <data android:mimeType="application/octet-stream" />
+                <data android:mimeType="*/*" />
                 <data android:pathPattern=".*\\.gpx" />
                 <data android:pathPattern=".*\\..*\\.gpx" />
                 <data android:pathPattern=".*\\.GPX" />
+                <data android:pathPattern=".*\\.map" />
+                <data android:pathPattern=".*\\.hgt" />
             </intent-filter>
 
-            <!-- Compartir un GPX (o un enlace de Wikiloc) con Cumbre -->
+            <!-- Compartir con Cumbre un archivo (GPX, mapa o relieve) o un enlace de Wikiloc -->
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="application/gpx+xml" />
                 <data android:mimeType="application/gpx" />
+                <data android:mimeType="application/x-gpx" />
+                <data android:mimeType="application/vnd.gpx" />
                 <data android:mimeType="text/gpx" />
                 <data android:mimeType="text/xml" />
                 <data android:mimeType="application/xml" />
                 <data android:mimeType="application/octet-stream" />
+                <data android:mimeType="application/zip" />
                 <data android:mimeType="text/plain" />
             </intent-filter>
         </activity>

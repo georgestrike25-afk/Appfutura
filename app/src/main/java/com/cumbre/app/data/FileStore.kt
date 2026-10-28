@@ -5,6 +5,8 @@ import android.content.Context
 import android.net.Uri
 import android.os.StatFs
 import android.provider.OpenableColumns
+import com.cumbre.core.maps.IncomingFileDetector
+import com.cumbre.core.maps.IncomingFileKind
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
@@ -76,6 +78,38 @@ class FileStore(private val context: Context) {
         }
         return total
     }
+
+    /** Identifica un archivo recibido por su contenido (y su nombre como respaldo). */
+    fun classify(uri: Uri): IncomingFileKind {
+        val name = displayName(uri)
+        val header = ByteArray(64)
+        val read = runCatching {
+            openInput(uri).use { input ->
+                var n = 0
+                while (n < header.size) {
+                    val r = input.read(header, n, header.size - n)
+                    if (r < 0) break
+                    n += r
+                }
+                n
+            }
+        }.getOrElse { return IncomingFileKind.UNKNOWN }
+        val head = header.copyOf(read)
+        val entries = if (IncomingFileDetector.isZip(head)) zipEntryNames(uri) else emptyList()
+        return IncomingFileDetector.detect(name, head, entries)
+    }
+
+    private fun zipEntryNames(uri: Uri, max: Int = 60): List<String> = runCatching {
+        val names = ArrayList<String>()
+        java.util.zip.ZipInputStream(openInput(uri).buffered()).use { zip ->
+            while (names.size < max) {
+                val e = zip.nextEntry ?: break
+                names.add(e.name)
+                if (e.name.endsWith(".hgt", true)) break
+            }
+        }
+        names
+    }.getOrDefault(emptyList())
 
     fun openInput(uri: Uri): InputStream =
         context.contentResolver.openInputStream(uri) ?: throw IOException("No se pudo abrir el archivo seleccionado.")

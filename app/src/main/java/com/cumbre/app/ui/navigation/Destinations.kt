@@ -19,6 +19,7 @@ object Dest {
     const val TRACKING = "tracking"
     const val ACTIVITY_DETAIL = "activity/{id}"
     const val OFFLINE_MAPS = "maps"
+    const val OFFLINE_MAPS_IMPORT = "maps/import?uri={uri}&kind={kind}"
     const val WIKILOC = "wikiloc?url={url}"
     const val SETTINGS = "settings"
     const val PRIVACY = "privacy"
@@ -28,6 +29,7 @@ object Dest {
     fun routeMap(id: Long) = "route/$id/map"
     fun activityDetail(id: Long) = "activity/$id"
     fun import(uri: Uri) = "import?uri=${Uri.encode(uri.toString())}"
+    fun offlineMapsImport(uri: Uri, kind: String) = "maps/import?uri=${Uri.encode(uri.toString())}&kind=$kind"
     fun wikiloc(url: String? = null) = if (url == null) "wikiloc" else "wikiloc?url=${Uri.encode(url)}"
 }
 

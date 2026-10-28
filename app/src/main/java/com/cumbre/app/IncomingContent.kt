@@ -7,7 +7,8 @@ import kotlinx.coroutines.flow.asStateFlow
 
 /** Contenido recibido desde otras apps («Abrir con» o «Compartir»), pendiente de procesar. */
 sealed interface Incoming {
-    data class GpxFile(val uri: Uri) : Incoming
+    /** Archivo recibido: puede ser GPX, mapa .map o relieve; se identifica al procesarlo. */
+    data class File(val uri: Uri) : Incoming
     data class WikilocLink(val url: String) : Incoming
     data object OpenTracking : Incoming
 }

@@ -63,7 +63,10 @@ import com.cumbre.app.ui.screens.onboarding.OnboardingScreen
 import com.cumbre.app.ui.screens.routes.RoutesScreen
 import com.cumbre.app.ui.screens.tracking.TrackingScreen
 import com.cumbre.core.recording.RecoveryDecision
+import com.cumbre.core.maps.IncomingFileKind
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -115,7 +118,17 @@ private fun MainScaffold(container: AppContainer) {
     LaunchedEffect(incoming) {
         val item = incoming ?: return@LaunchedEffect
         when (item) {
-            is Incoming.GpxFile -> nav.navigate(Dest.import(item.uri))
+            is Incoming.File -> {
+                // Se identifica por el contenido: muchas apps lo entregan como binario genérico.
+                when (withContext(Dispatchers.IO) { container.files.classify(item.uri) }) {
+                    IncomingFileKind.GPX -> nav.navigate(Dest.import(item.uri))
+                    IncomingFileKind.MAP -> nav.navigate(Dest.offlineMapsImport(item.uri, "map"))
+                    IncomingFileKind.RELIEF -> nav.navigate(Dest.offlineMapsImport(item.uri, "relief"))
+                    IncomingFileKind.UNKNOWN -> messenger(
+                        "Cumbre no reconoce ese archivo. Puede abrir rutas GPX, mapas Mapsforge (.map) y relieve SRTM (.hgt o .zip).",
+                    )
+                }
+            }
             is Incoming.WikilocLink -> nav.navigate(Dest.wikiloc(item.url))
             Incoming.OpenTracking -> if (container.trackingManager.state.value.isActive) nav.navigate(Dest.TRACKING) { launchSingleTop = true }
         }
@@ -190,6 +203,15 @@ private fun CumbreNavHost(nav: NavHostController, modifier: Modifier) {
             ActivityDetailScreen(nav, entry.arguments?.getLong("id") ?: 0L)
         }
         composable(Dest.OFFLINE_MAPS) { OfflineMapsScreen(nav) }
+        composable(
+            Dest.OFFLINE_MAPS_IMPORT,
+            arguments = listOf(
+                navArgument("uri") { type = NavType.StringType; nullable = true; defaultValue = null },
+                navArgument("kind") { type = NavType.StringType; nullable = true; defaultValue = null },
+            ),
+        ) { entry ->
+            OfflineMapsScreen(nav, entry.arguments?.getString("uri")?.let { Uri.parse(it) }, entry.arguments?.getString("kind"))
+        }
         composable(
             Dest.WIKILOC,
             arguments = listOf(navArgument("url") { type = NavType.StringType; nullable = true; defaultValue = null }),

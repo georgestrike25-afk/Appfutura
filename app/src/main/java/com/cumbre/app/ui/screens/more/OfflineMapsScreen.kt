@@ -27,7 +27,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -124,7 +126,7 @@ class OfflineMapsViewModel(private val repo: MapRepository, private val relief: 
 }
 
 @Composable
-fun OfflineMapsScreen(nav: NavController) {
+fun OfflineMapsScreen(nav: NavController, incomingUri: Uri? = null, incomingKind: String? = null) {
     val container = LocalAppContainer.current
     val messenger = LocalMessenger.current
     val context = LocalContext.current
@@ -143,6 +145,14 @@ fun OfflineMapsScreen(nav: NavController) {
     var toDelete by remember { mutableStateOf<OfflineMapEntity?>(null) }
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
         if (uri != null) vm.importMap(uri, messenger)
+    }
+    // Archivo abierto desde otra app («Abrir con Cumbre»): se instala una sola vez.
+    var incomingHandled by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(incomingUri) {
+        if (incomingUri != null && !incomingHandled) {
+            incomingHandled = true
+            if (incomingKind == "relief") vm.importRelief(incomingUri, messenger) else vm.importMap(incomingUri, messenger)
+        }
     }
 
     Column(Modifier.fillMaxSize()) {
@@ -246,7 +256,7 @@ fun OfflineMapsScreen(nav: NavController) {
                         )
                         QuietButton("Mapas y relieve listos para Cumbre", onClick = { context.openUrl(CUMBRE_MAPS_URL) }, icon = Icons.AutoMirrored.Rounded.OpenInNew)
                         QuietButton("Mapas de Argentina (Mapsforge)", onClick = { context.openUrl("https://download.mapsforge.org/maps/v5/south-america/") }, icon = Icons.AutoMirrored.Rounded.OpenInNew)
-                        QuietButton("OpenAndroMaps", onClick = { context.openUrl("https://www.openandromaps.org/en/downloads/south-america") }, icon = Icons.AutoMirrored.Rounded.OpenInNew)
+                        QuietButton("OpenAndroMaps", onClick = { context.openUrl("https://www.openandromaps.org/en") }, icon = Icons.AutoMirrored.Rounded.OpenInNew)
                         Text("Datos de mapa © colaboradores de OpenStreetMap (ODbL).", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }

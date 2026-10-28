@@ -15,7 +15,7 @@ Cumbre es una app Android de trekking. Convierte rutas encontradas en Wikiloc, o
 ## Funcionalidades implementadas
 
 ### Rutas GPX
-- **Importación** desde el selector de archivos, con «Abrir con Cumbre» y «Compartir con Cumbre» desde otras apps (gestores de archivos, navegador, mensajería, Wikiloc).
+- **Importación** desde el selector de archivos, con «Abrir con Cumbre» y «Compartir con Cumbre» desde otras apps (gestores de archivos, navegador, mensajería, Wikiloc). Cumbre aparece aunque el archivo llegue como binario genérico: identifica el contenido y lleva cada archivo a su lugar (GPX a preparar la ruta, `.map` a mapas sin conexión, `.hgt` o `.zip` de elevación a relieve).
 - **Lectura segura y por streaming** de GPX 1.0 y 1.1: tracks, segmentos, rutas (`rte`), waypoints, elevaciones, marcas de tiempo, nombres, descripciones, enlaces y metadatos.
   - Rechaza `DOCTYPE` y entidades externas (protección XXE).
   - Límites: 50 MB por archivo y un millón de puntos.
@@ -227,7 +227,7 @@ Otras fuentes:
 
 1. Con Wi-Fi, descargá desde el navegador el mapa `.map` de tu provincia o región:
    - [Servidor oficial de Mapsforge](https://download.mapsforge.org/maps/v5/south-america/) (por ejemplo, `argentina.map`);
-   - [OpenAndroMaps](https://www.openandromaps.org/en/downloads/south-america), con mapas orientados a senderismo. Viene en ZIP: descomprimilo y usá el `.map`.
+   - [OpenAndroMaps](https://www.openandromaps.org/en), con mapas orientados a senderismo. Viene en ZIP: descomprimilo y usá el `.map`.
 2. En **Más › Mapas sin conexión**, tocá **Importar archivo .map**.
 3. Desde ese momento, el mapa se ve sin conexión. El detalle de cada ruta indica si está cubierta.
 

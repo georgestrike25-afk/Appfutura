@@ -46,12 +46,12 @@ class MainActivity : ComponentActivity() {
             return
         }
         when (intent.action) {
-            Intent.ACTION_VIEW -> intent.data?.let { container.incoming.offer(Incoming.GpxFile(it)) }
+            Intent.ACTION_VIEW -> intent.data?.let { container.incoming.offer(Incoming.File(it)) }
             Intent.ACTION_SEND -> {
                 val stream = intent.streamUri()
                 val text = intent.getStringExtra(Intent.EXTRA_TEXT)
                 when {
-                    stream != null -> container.incoming.offer(Incoming.GpxFile(stream))
+                    stream != null -> container.incoming.offer(Incoming.File(stream))
                     WikilocLinks.extractUrl(text) != null ->
                         container.incoming.offer(Incoming.WikilocLink(WikilocLinks.extractUrl(text)!!))
                 }
