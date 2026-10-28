@@ -8,7 +8,9 @@ Cumbre es una app Android de trekking. Convierte rutas encontradas en Wikiloc, o
 - Sin publicidad, sin servicios pagos y sin claves de API.
 - **Sin permiso de Internet**: tus rutas, recorridos y ubicación no salen del teléfono.
 
-![Propuesta de interfaz](docs/diseno/cumbre-mockups.png)
+![Rediseño aprobado](design/previews/pantallas/01-inicio.png)
+
+El diseño aprobado está en [`design/`](design/README.md). Las capturas reales de la app, tomadas en un emulador por CI, se publican en la release [`capturas-latest`](https://github.com/georgestrike25-afk/Appfutura/releases/tag/capturas-latest).
 
 ---
 
@@ -67,10 +69,15 @@ Cumbre es una app Android de trekking. Convierte rutas encontradas en Wikiloc, o
 - **No inventa indicaciones de giro**: se muestra la línea del GPX y la posición respecto de ella.
 
 ### Grabación de actividades
-- Grabación libre o mientras se sigue una ruta, con un **servicio en primer plano de tipo `location`**: sigue funcionando con la pantalla apagada o la app en segundo plano.
+- Grabación libre o mientras se sigue una ruta, con un **servicio en primer plano de tipo `location`**: sigue funcionando con la pantalla apagada, la app en segundo plano o quitada de recientes, **hasta que la finalices**. El mismo blindaje se aplica a la grabación libre y al seguimiento de una ruta:
+  - **wake lock parcial** mientras graba, para que la CPU no se duerma con la pantalla apagada;
+  - el servicio **sigue vivo en pausa** (sin GPS), así Android no cierra la app y podés **pausar y reanudar desde la notificación**;
+  - un **vigilante** vuelve a pedir el GPS si deja de llegar señal durante 90 s;
+  - `stopWithTask=false`: quitar la app de recientes no corta la grabación;
+  - antes de la primera grabación se ofrece **quitar la restricción de batería**, con los pasos para Xiaomi, Samsung, Huawei, OPPO/realme/OnePlus, vivo y Motorola. También está en **Ajustes › Grabación con la pantalla apagada**.
 - **Filtro de ruido GPS**: descarta lecturas imprecisas (más de 35 m), desordenadas, saltos imposibles y el temblor estando quieto, sin ocultar desplazamientos reales.
 - **Cada punto se guarda en Room al recibirse.** Si Android cierra el proceso:
-  - el servicio se reinicia y retoma la grabación;
+  - el servicio se reinicia y retoma la grabación (o la deja en pausa, si estaba en pausa);
   - si eso no es posible, al abrir la app se ofrece continuar, guardar o descartar la actividad.
 - **Historial** con totales. **Detalle** con mapa, estadísticas y perfil de altitud.
 - Exportar a GPX (las pausas quedan como tramos separados), compartir, cambiar el nombre, eliminar y **guardar como ruta propia** en «Mis rutas».
@@ -111,7 +118,10 @@ Cumbre es una app Android de trekking. Convierte rutas encontradas en Wikiloc, o
 - Tipografías **Montserrat** (títulos) e **Inter** (textos y datos), incluidas localmente.
 - **Icono adaptativo vectorial** (fondo, primer plano y variante monocromática para iconos temáticos), splash con la API SplashScreen, logo e ilustración de bienvenida en vectores. La fuente del icono está en `docs/marca/cumbre-icono.svg` y hay un PNG de 512 px para tiendas.
 - Modo claro, oscuro y «según el sistema».
-- Componentes reutilizables: botones, tarjetas, etiquetas, chips, diálogos de confirmación, estados vacíos, mensajes, buscador, panel inferior del mapa y controles flotantes.
+- **Ícono E** (perfil de montaña con la cumbre en naranja), elegido entre seis propuestas (`design/fuente/iconos/`).
+- **El perfil de elevación como firma visual**: la silueta de la ruta aparece en el Inicio, en cada tarjeta de ruta y en la navegación, donde marca tu progreso.
+- Componentes reutilizables: botones, tarjetas, etiquetas (mapa, dificultad, origen), píldora de estado (Grabando / En pausa / Finalizado), cápsulas del mapa, controles de zoom agrupados, accesos rápidos, selector segmentado, diálogos, estados vacíos, mensajes, buscador y panel inferior del mapa.
+- **Dificultad estimada** (Fácil, Moderada, Difícil, Muy difícil) a partir de distancia y desnivel. Es orientativa: no considera el terreno ni la altitud.
 
 ---
 
@@ -183,7 +193,12 @@ Para publicar, configurá tu propia firma y ejecutá `./gradlew :app:assembleRel
 
 ### CI
 
-El workflow `.github/workflows/android.yml` ejecuta las pruebas y compila el APK de depuración en cada push. El APK queda como artefacto descargable (`cumbre-debug-apk`) en la pestaña **Actions** de GitHub.
+El workflow `.github/workflows/android.yml` ejecuta las pruebas y compila el APK de depuración en cada push. El APK queda como artefacto descargable (`cumbre-debug-apk`) y en la release [`debug-latest`](https://github.com/georgestrike25-afk/Appfutura/releases/tag/debug-latest).
+
+El workflow `.github/workflows/emulador.yml` levanta un emulador Android 14 (Pixel 6), simula caminar por una ruta de prueba con `adb emu geo fix` (`scripts/emulador-gps.py`) y ejecuta:
+- **`RecordingBackgroundTest`**: grabación libre y siguiendo una ruta durante 75 s con la **pantalla apagada y Doze forzado**; pausa con el servicio vivo y sin puntos; reanudar; finalizar; y restauración tras un reinicio del proceso (grabando y en pausa).
+- **`PersistenceTest`**: Room real.
+- **`ScreenshotsTest`**: recorre la app y guarda capturas de todas las pantallas (con el mapa y el relieve reales de la release `mapas-argentina`), publicadas en la release `capturas-latest`.
 
 ### Pruebas
 
@@ -236,9 +251,10 @@ Cumbre no descarga teselas del servidor público de OpenStreetMap ni hace descar
 
 ### Seguir una ruta o grabar una actividad
 - **Seguir una ruta**: en el detalle de la ruta, tocá **Iniciar recorrido**. La primera vez se explica para qué se usa la ubicación antes de pedirla.
-- **Grabar sin ruta**: en **Actividad**, tocá **Iniciar actividad**.
+- **Grabar sin ruta**: en **Inicio** tocá **Grabar**, o en **Actividad**, **Iniciar actividad**.
 - **Durante el recorrido**:
-  - **Pausar** libera el GPS;
+  - arriba se ve siempre el estado (**Grabando** o **En pausa**); abajo, **cuánto te falta**, la hora aproximada de llegada y tu posición en el perfil;
+  - **Pausar** libera el GPS (también desde la notificación);
   - **Finalizar** guarda la actividad en el historial;
   - se puede volver atrás y usar otras secciones: la grabación continúa.
 
@@ -250,6 +266,8 @@ Cumbre no descarga teselas del servidor público de OpenStreetMap ni hace descar
 | Servicio en primer plano (ubicación) | Seguir grabando con la pantalla apagada, con una notificación visible. |
 | Notificaciones | Mostrar el recorrido en curso y los avisos de desvío (Android 13 y posteriores). |
 | Vibración | Aviso de desvío. |
+| Wake lock | Mantener la CPU despierta solo mientras se graba, con la pantalla apagada. |
+| Ignorar optimización de batería | Pedir que Android no cierre Cumbre mientras graba. Solo se solicita si lo aceptás. |
 
 **No** se piden Internet, ubicación en segundo plano permanente ni acceso al almacenamiento compartido: los archivos se leen y escriben con el selector del sistema.
 
@@ -275,7 +293,9 @@ Solo los enlaces externos (Wikiloc y las páginas de descarga de mapas) se abren
 - **Los textos de la interfaz están en español dentro del código**, no en `strings.xml`. Si se agregan idiomas, hay que externalizarlos.
 - **Los datos se guardan sin cifrado propio de la app.** Los protege el cifrado del dispositivo.
 - **Esquema de base de datos en versión 1.** Las próximas versiones deben agregar migraciones de Room.
-- **Las pruebas de persistencia con Room** (`app/src/androidTest`) requieren un dispositivo o emulador para ejecutarse.
+- **Las pruebas instrumentadas** (`app/src/androidTest`) requieren un dispositivo o emulador; CI las ejecuta en el workflow `emulador.yml`.
+- **Las capas de ahorro de batería de cada fabricante** (MIUI, One UI, EMUI…) no se pueden reproducir en el emulador. Cumbre hace lo que Android permite (servicio en primer plano, wake lock, pedido de excepción de batería y guía por marca), pero en algunos teléfonos hay que ajustar la batería a mano una vez.
+- **El permiso para ignorar la optimización de batería** está restringido en Google Play para ciertas categorías de apps. Si se publica en Play habrá que justificarlo o cambiar al acceso a la lista de ajustes (`ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS`), que ya se usa como alternativa.
 
 ## Licencias y atribuciones
 
