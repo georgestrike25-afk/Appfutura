@@ -55,6 +55,8 @@ fun CumbreMap(
     followPosition: Boolean = false,
     rotationDegrees: Float = 0f,
     highlighted: GeoPoint? = null,
+    cursor: GeoPoint? = null,
+    summit: Pair<GeoPoint, String>? = null,
     retainKey: String? = null,
     onWaypointTap: ((MapWaypoint) -> Unit)? = null,
     onMapAvailability: ((Boolean) -> Unit)? = null,
@@ -94,6 +96,7 @@ fun CumbreMap(
         controller.setRecorded(recordedLines, recordedColor)
         controller.setPosition(position)
         controller.setHighlighted(highlighted)
+        controller.setProfileMarkers(cursor, summit)
     }
     LaunchedEffect(controller, fitKey) {
         fitBounds?.let { controller.fitBounds(it) }

@@ -47,6 +47,7 @@ import com.cumbre.app.ui.components.LoadingState
 import com.cumbre.app.ui.components.MapControlButton
 import com.cumbre.app.ui.components.MapZoomControls
 import com.cumbre.app.ui.components.PrimaryButton
+import com.cumbre.app.ui.components.rememberProfileMarkers
 import com.cumbre.app.ui.cumbreViewModel
 import com.cumbre.app.ui.navigation.Dest
 import com.cumbre.app.ui.platform.LocationPurpose
@@ -82,6 +83,8 @@ fun RouteMapScreen(nav: NavController, routeId: Long) {
     var follow by rememberSaveable { mutableStateOf(false) }
     val live by rememberLiveLocation(container.locationSource, showLocation && permission.hasAnyPermission)
     val position = live?.toMapPosition()
+    var scrub by remember { mutableStateOf<Double?>(null) }
+    val markers = rememberProfileMarkers(state.geometry?.lines ?: emptyList(), state.profile, scrub)
 
     val route = state.route
     if (route == null) {
@@ -98,6 +101,8 @@ fun RouteMapScreen(nav: NavController, routeId: Long) {
             fitBounds = route.bounds,
             fitKey = route.id,
             followPosition = follow,
+            cursor = markers.cursor,
+            summit = markers.summit,
             onWaypointTap = { w -> messenger(w.name ?: "Waypoint sin nombre") },
             onController = { controller = it },
         )
@@ -161,7 +166,7 @@ fun RouteMapScreen(nav: NavController, routeId: Long) {
         ) {
             Column(Modifier.windowInsetsPadding(WindowInsets.navigationBars).padding(horizontal = Spacing.l, vertical = Spacing.m)) {
                 if (state.profile.isNotEmpty()) {
-                    ElevationProfileChart(state.profile, height = 64.dp)
+                    ElevationProfileChart(state.profile, height = 84.dp, scrubDistanceMeters = scrub, onScrub = { scrub = it })
                     Spacer(Modifier.height(Spacing.s))
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {

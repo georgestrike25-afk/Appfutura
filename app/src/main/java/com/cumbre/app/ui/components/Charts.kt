@@ -1,6 +1,16 @@
 package com.cumbre.app.ui.components
 
 import androidx.compose.foundation.Canvas
+import com.cumbre.core.analysis.ProfileFeatures
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.getValue
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -34,7 +44,8 @@ import kotlin.math.max
 
 /**
  * Perfil de elevación dibujado a partir de los datos reales del track. Muestra altitud
- * mínima y máxima y, opcionalmente, la posición actual sobre el recorrido.
+ * mínima y máxima y marca el punto más alto. Si se indica [onScrub], tocar o arrastrar el dedo
+ * sobre el perfil elige un punto: se informa su distancia para ubicarlo en el mapa.
  */
 @Composable
 fun ElevationProfileChart(
@@ -43,22 +54,46 @@ fun ElevationProfileChart(
     height: Dp = 96.dp,
     markerDistanceMeters: Double? = null,
     warningDistanceMeters: Double? = null,
+    scrubDistanceMeters: Double? = null,
+    onScrub: ((Double) -> Unit)? = null,
+    showSummit: Boolean = true,
 ) {
     if (profile.size < 2) return
     val line = MaterialTheme.colorScheme.primary
     val grid = MaterialTheme.colorScheme.outlineVariant
     val label = MaterialTheme.colorScheme.onSurfaceVariant
+    val summitColor = MaterialTheme.colorScheme.onSurface
     val marker = CumbreTheme.extra.position
+    val cursorColor = CumbreTheme.extra.recorded
     val warning = CumbreTheme.extra.warning
     val measurer = rememberTextMeasurer()
     val minE = remember(profile) { profile.minOf { it.elevationMeters } }
     val maxE = remember(profile) { profile.maxOf { it.elevationMeters } }
+    val summit = remember(profile) { ProfileFeatures.highest(profile) }
     val total = profile.last().distanceMeters
-    val description = "Perfil de elevación: de ${Formatters.elevation(minE)} a ${Formatters.elevation(maxE)} en ${Formatters.distance(total)}"
-    Box(modifier.fillMaxWidth().height(height).semantics { contentDescription = description }) {
+    val description = "Perfil de elevación: de ${Formatters.elevation(minE)} a ${Formatters.elevation(maxE)} en ${Formatters.distance(total)}" +
+        (summit?.let { ". Punto más alto en el kilómetro ${Formatters.kilometersValue(it.distanceMeters)}" } ?: "")
+    val currentOnScrub by rememberUpdatedState(onScrub)
+    val gestures = if (onScrub != null) {
+        Modifier
+            .pointerInput(profile) {
+                detectTapGestures { o -> currentOnScrub?.invoke((o.x / size.width).coerceIn(0f, 1f) * total) }
+            }
+            .pointerInput(profile) {
+                detectHorizontalDragGestures(
+                    onDragStart = { o -> currentOnScrub?.invoke((o.x / size.width).coerceIn(0f, 1f) * total) },
+                ) { change, _ ->
+                    change.consume()
+                    currentOnScrub?.invoke((change.position.x / size.width).coerceIn(0f, 1f) * total)
+                }
+            }
+    } else {
+        Modifier
+    }
+    Box(modifier.fillMaxWidth().height(height).semantics { contentDescription = description }.then(gestures)) {
         Canvas(Modifier.fillMaxWidth().height(height)) {
             val labelStyle = TextStyle(fontFamily = Inter, fontSize = 9.5.sp, color = label)
-            val top = 14.dp.toPx()
+            val top = 16.dp.toPx()
             val bottom = size.height - 14.dp.toPx()
             val left = 0f
             val right = size.width
@@ -88,6 +123,17 @@ fun ElevationProfileChart(
             warningDistanceMeters?.let { d ->
                 drawLine(warning, Offset(px(d), top), Offset(px(d), bottom), 1.2.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(4f, 4f)))
             }
+            if (showSummit && summit != null) {
+                val sx = px(summit.distanceMeters)
+                val sy = py(summit.elevationMeters)
+                val tri = Path().apply {
+                    moveTo(sx, sy - 9.dp.toPx())
+                    lineTo(sx + 6.dp.toPx(), sy - 1.dp.toPx())
+                    lineTo(sx - 6.dp.toPx(), sy - 1.dp.toPx())
+                    close()
+                }
+                drawPath(tri, summitColor)
+            }
             markerDistanceMeters?.let { d ->
                 val x = px(d.coerceIn(0.0, total))
                 val e = elevationAt(profile, d)
@@ -99,6 +145,25 @@ fun ElevationProfileChart(
             val totalText = Formatters.distance(total)
             val w = measurer.measure(totalText, labelStyle).size.width
             drawLabel(measurer, totalText, labelStyle, Offset(right - w - 2f, bottom + 1.dp.toPx()))
+
+            scrubDistanceMeters?.let { d ->
+                val dd = d.coerceIn(0.0, total)
+                val x = px(dd)
+                val e = elevationAt(profile, dd)
+                drawLine(cursorColor, Offset(x, top), Offset(x, bottom), 1.5.dp.toPx())
+                drawCircle(Color.White, 6.dp.toPx(), Offset(x, py(e)))
+                drawCircle(cursorColor, 4.5.dp.toPx(), Offset(x, py(e)))
+                // Etiqueta con altitud y kilómetro del punto elegido.
+                val tag = "${Formatters.elevation(e)} · km ${Formatters.kilometersValue(dd)}"
+                val tagStyle = TextStyle(fontFamily = Inter, fontSize = 11.sp, color = Color.White, fontWeight = FontWeight.SemiBold)
+                val layout = measurer.measure(tag, tagStyle)
+                val padH = 6.dp.toPx()
+                val bw = layout.size.width + 2 * padH
+                val bh = layout.size.height + 2.dp.toPx()
+                val bx = (x - bw / 2).coerceIn(0f, size.width - bw)
+                drawRoundRect(cursorColor, Offset(bx, 0f), Size(bw, bh), CornerRadius(4.dp.toPx()))
+                drawText(layout, topLeft = Offset(bx + padH, 1.dp.toPx()))
+            }
         }
     }
 }

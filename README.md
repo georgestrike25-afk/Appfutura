@@ -88,6 +88,7 @@ Cumbre es una app Android de trekking. Convierte rutas encontradas en Wikiloc, o
   - botones + y −, ver toda la ruta, mi ubicación y relieve;
   - perfil de elevación y coordenadas.
 - **Nombres de los waypoints** escritos sobre el mapa.
+- **Perfil de elevación interactivo**: al tocar o arrastrar el dedo por el perfil se ven la altitud y el kilómetro de ese punto, y un punto azul lo marca en el mapa. El **punto más alto** aparece marcado en el perfil y en el mapa, con su altitud y su kilómetro.
 - **Sin mapa instalado** se ve el track y la posición sobre un fondo liso, con un aviso. Nunca se simula cartografía.
 
 ### Wikiloc

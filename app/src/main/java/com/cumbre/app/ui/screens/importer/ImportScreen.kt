@@ -26,6 +26,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
@@ -45,6 +47,8 @@ import com.cumbre.app.ui.components.LoadingState
 import com.cumbre.app.ui.components.MessageBanner
 import com.cumbre.app.ui.components.MessageKind
 import com.cumbre.app.ui.components.PrimaryButton
+import com.cumbre.app.ui.components.ProfileHint
+import com.cumbre.app.ui.components.rememberProfileMarkers
 import com.cumbre.app.ui.components.SecondaryButton
 import com.cumbre.app.ui.components.SectionTitle
 import com.cumbre.app.ui.cumbreViewModel
@@ -100,12 +104,16 @@ fun ImportScreen(nav: NavController, uri: Uri?) {
                 val p = s.pending
                 val lines = remember(p) { p.document.lines().map { l -> l.map { it.geo } } }
                 val waypoints = remember(p) { p.document.waypoints.map { MapWaypoint(it.name, it.geo) } }
+                var scrub by remember(p) { mutableStateOf<Double?>(null) }
+                val markers = rememberProfileMarkers(lines, p.analysis.profile, scrub)
                 CumbreMap(
                     modifier = Modifier.fillMaxWidth().height(240.dp),
                     layers = layers,
                     routeLines = lines,
                     waypoints = waypoints,
                     fitBounds = p.analysis.stats.bounds,
+                    cursor = markers.cursor,
+                    summit = markers.summit,
                     onWaypointTap = { messenger(it.name ?: "Waypoint") },
                 )
                 Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
@@ -144,8 +152,12 @@ fun ImportScreen(nav: NavController, uri: Uri?) {
                             SectionTitle("Perfil de elevación")
                             ElevationProfileChart(
                                 p.analysis.profile,
+                                height = 120.dp,
                                 warningDistanceMeters = p.analysis.issues.filterIsInstance<QualityIssue.LargeGap>().firstOrNull()?.atDistanceMeters,
+                                scrubDistanceMeters = scrub,
+                                onScrub = { scrub = it },
                             )
+                            ProfileHint(p.analysis.profile, Modifier.padding(top = 6.dp))
                         }
                         if (p.analysis.issues.isNotEmpty()) {
                             SectionTitle("Calidad de los datos")

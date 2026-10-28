@@ -81,6 +81,27 @@ class TrackGeometry(segments: List<List<GeoPoint>>) {
         return best
     }
 
+    /**
+     * Punto del recorrido a [distanceMeters] del inicio, medido a lo largo del track
+     * (la misma escala que el perfil de elevación). Se limita al inicio y al final.
+     */
+    fun pointAt(distanceMeters: Double): GeoPoint? {
+        if (edgeCount == 0) return singlePoint
+        if (distanceMeters <= 0.0) return edgesStart[0]
+        // Búsqueda binaria del tramo que contiene la distancia.
+        var lo = 0
+        var hi = edgeCount - 1
+        while (lo < hi) {
+            val mid = (lo + hi + 1) / 2
+            if (edgeStartDistance[mid] <= distanceMeters) lo = mid else hi = mid - 1
+        }
+        val len = edgeLength[lo]
+        val t = if (len <= 0.0) 0.0 else ((distanceMeters - edgeStartDistance[lo]) / len).coerceIn(0.0, 1.0)
+        val a = edgesStart[lo]
+        val b = edgesEnd[lo]
+        return GeoPoint(a.latitude + t * (b.latitude - a.latitude), a.longitude + t * (b.longitude - a.longitude))
+    }
+
     /** Progreso (distancia a lo largo del recorrido) del punto del track más cercano a [point]. */
     fun progressOf(point: GeoPoint): Double = match(point)?.progressMeters ?: 0.0
 }

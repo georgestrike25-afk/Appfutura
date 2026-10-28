@@ -33,6 +33,10 @@ class MarkersLayer(private val density: Float) : Layer() {
     @Volatile var waypoints: List<MapWaypoint> = emptyList()
     @Volatile var position: MapPosition? = null
     @Volatile var highlighted: GeoPoint? = null
+    /** Punto elegido sobre el perfil de elevación (se mueve al arrastrar el dedo por el perfil). */
+    @Volatile var cursor: GeoPoint? = null
+    /** Punto más alto del recorrido y su etiqueta (por ejemplo, «1.131 m»). */
+    @Volatile var summit: Pair<GeoPoint, String>? = null
     var onWaypointTap: ((MapWaypoint) -> Unit)? = null
 
     private val fill = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
@@ -76,6 +80,27 @@ class MarkersLayer(private val density: Float) : Layer() {
             fill.color = WHITE; c.drawCircle(cx, cy, 11 * d, fill)
             fill.color = DARK; c.drawCircle(cx, cy, 8.5f * d, fill)
             drawFlag(c, cx, cy, WHITE, d * 0.85f)
+        }
+        summit?.let { (p, text) ->
+            val cx = x(p); val cy = y(p)
+            path.reset()
+            path.moveTo(cx, cy - 11 * d)
+            path.lineTo(cx + 10 * d, cy + 7 * d)
+            path.lineTo(cx - 10 * d, cy + 7 * d)
+            path.close()
+            fill.color = DARK; c.drawPath(path, fill)
+            stroke.color = WHITE; stroke.strokeWidth = 2 * d; stroke.strokeJoin = Paint.Join.ROUND; c.drawPath(path, stroke)
+            labelHalo.color = WHITE
+            label.color = DARK
+            c.drawText(text, cx + 13 * d, cy + 4 * d, labelHalo)
+            c.drawText(text, cx + 13 * d, cy + 4 * d, label)
+        }
+        cursor?.let { p ->
+            val cx = x(p); val cy = y(p)
+            fill.color = CURSOR; fill.alpha = 60; c.drawCircle(cx, cy, 16 * d, fill)
+            fill.alpha = 255
+            fill.color = WHITE; c.drawCircle(cx, cy, 9 * d, fill)
+            fill.color = CURSOR; c.drawCircle(cx, cy, 6.5f * d, fill)
         }
         highlighted?.let { h ->
             stroke.color = ORANGE; stroke.strokeWidth = 3 * d
@@ -155,6 +180,7 @@ class MarkersLayer(private val density: Float) : Layer() {
         private const val ORANGE = 0xFFFF8A00.toInt()
         private const val DARK = 0xFF1E1E1E.toInt()
         private const val GREY = 0xFF8A9590.toInt()
+        private const val CURSOR = 0xFF2F7DE1.toInt()
         private const val LABEL_MIN_ZOOM: Byte = 12
     }
 }

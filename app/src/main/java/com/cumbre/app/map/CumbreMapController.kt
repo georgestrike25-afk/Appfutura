@@ -204,6 +204,13 @@ class CumbreMapController(context: Context, dark: Boolean) {
         markers.requestRedraw()
     }
 
+    fun setProfileMarkers(cursor: GeoPoint?, summit: Pair<GeoPoint, String>?) {
+        if (markers.cursor == cursor && markers.summit == summit) return
+        markers.cursor = cursor
+        markers.summit = summit
+        markers.requestRedraw()
+    }
+
     fun setHighlighted(point: GeoPoint?) {
         markers.highlighted = point
         markers.requestRedraw()

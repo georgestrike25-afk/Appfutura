@@ -67,6 +67,8 @@ import com.cumbre.app.ui.components.MapZoomControls
 import com.cumbre.app.ui.components.MessageBanner
 import com.cumbre.app.ui.components.MessageKind
 import com.cumbre.app.ui.components.OfflineBadge
+import com.cumbre.app.ui.components.ProfileHint
+import com.cumbre.app.ui.components.rememberProfileMarkers
 import com.cumbre.app.ui.components.PrimaryButton
 import com.cumbre.app.ui.components.SecondaryButton
 import com.cumbre.app.ui.components.SectionTitle
@@ -106,6 +108,7 @@ fun RouteDetailScreen(nav: NavController, routeId: Long) {
     val tracking by container.trackingManager.state.collectAsStateWithLifecycle()
     val permission = rememberLocationPermission(container.settings)
     var menu by remember { mutableStateOf(false) }
+    var scrub by remember { mutableStateOf<Double?>(null) }
     // Tu posición se muestra siempre que haya permiso, aunque estés lejos del track.
     val live by rememberLiveLocation(container.locationSource, permission.hasAnyPermission)
     var mapController by remember { mutableStateOf<com.cumbre.app.map.CumbreMapController?>(null) }
@@ -138,6 +141,7 @@ fun RouteDetailScreen(nav: NavController, routeId: Long) {
             })
         }
         else -> Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+                val markers = rememberProfileMarkers(state.geometry?.lines ?: emptyList(), state.profile, scrub)
                 // El mapa queda fuera de la zona desplazable para que los gestos (arrastrar,
                 // pellizcar) lleguen al mapa y no a la lista.
                 Box(Modifier.fillMaxWidth().height(300.dp)) {
@@ -149,6 +153,8 @@ fun RouteDetailScreen(nav: NavController, routeId: Long) {
                         fitBounds = route.bounds,
                         fitKey = route.id,
                         position = live?.toMapPosition(),
+                        cursor = markers.cursor,
+                        summit = markers.summit,
                         onWaypointTap = { messenger(it.name ?: "Waypoint") },
                         onController = { mapController = it },
                     )
@@ -215,8 +221,12 @@ fun RouteDetailScreen(nav: NavController, routeId: Long) {
                         SectionTitle("Perfil de elevación")
                         ElevationProfileChart(
                             state.profile,
+                            height = 120.dp,
                             warningDistanceMeters = state.issues.filterIsInstance<QualityIssue.LargeGap>().firstOrNull()?.atDistanceMeters,
+                            scrubDistanceMeters = scrub,
+                            onScrub = { scrub = it },
                         )
+                        ProfileHint(state.profile, Modifier.padding(top = 6.dp))
                     }
                     SectionTitle("Mapa sin conexión")
                     OfflineSection(state.coverage?.level, state.coveringMaps.map { it.displayName }, state.anyMapsInstalled) { nav.navigate(Dest.OFFLINE_MAPS) }

@@ -47,6 +47,8 @@ import com.cumbre.app.ui.components.ElevationProfileChart
 import com.cumbre.app.ui.components.EmptyState
 import com.cumbre.app.ui.components.LoadingState
 import com.cumbre.app.ui.components.PrimaryButton
+import com.cumbre.app.ui.components.ProfileHint
+import com.cumbre.app.ui.components.rememberProfileMarkers
 import com.cumbre.app.ui.components.SecondaryButton
 import com.cumbre.app.ui.components.SectionTitle
 import com.cumbre.app.ui.components.StatGrid
@@ -99,12 +101,16 @@ fun ActivityDetailScreen(nav: NavController, activityId: Long) {
             a == null -> EmptyState(Icons.Rounded.ErrorOutline, "La actividad no existe", "Puede que la hayas eliminado.")
             else -> {
                 val track = state.track
+                var scrub by remember { mutableStateOf<Double?>(null) }
+                val markers = rememberProfileMarkers(track?.lines ?: emptyList(), track?.analysis?.profile ?: emptyList(), scrub)
                 CumbreMap(
                     modifier = Modifier.fillMaxWidth().height(260.dp),
                     layers = layers,
                     routeLines = track?.lines ?: emptyList(),
                     fitBounds = track?.bounds,
                     fitKey = track?.bounds,
+                    cursor = markers.cursor,
+                    summit = markers.summit,
                 )
                 Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
                     Column(Modifier.padding(horizontal = Spacing.l, vertical = Spacing.m)) {
@@ -134,7 +140,8 @@ fun ActivityDetailScreen(nav: NavController, activityId: Long) {
                         )
                         track?.analysis?.profile?.takeIf { it.isNotEmpty() }?.let {
                             SectionTitle("Perfil de altitud (GPS)")
-                            ElevationProfileChart(it)
+                            ElevationProfileChart(it, height = 110.dp, scrubDistanceMeters = scrub, onScrub = { d -> scrub = d })
+                            ProfileHint(it, Modifier.padding(top = 6.dp))
                         }
                         Text(
                             "El desnivel se estima con la altitud del GPS, que es menos precisa que la horizontal.",
