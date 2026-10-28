@@ -384,9 +384,10 @@ class TrackingManager(
             movingMillis = moving,
         )
         val wp = follow.nextWaypoint
-        val toWaypoint = if (wp != null && follow.distanceToNextWaypointMeters != null) {
+        val wpDistance = follow.distanceToNextWaypointMeters
+        val toWaypoint = if (wp != null && wpDistance != null) {
             EtaEstimator.estimateSeconds(
-                remainingMeters = follow.distanceToNextWaypointMeters,
+                remainingMeters = wpDistance,
                 remaining = EtaEstimator.remainingClimb(route.profile, progress, wp.progressMeters),
                 doneMeters = progress,
                 done = done,
