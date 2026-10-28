@@ -126,7 +126,10 @@ class MarkersLayer(private val density: Float) : Layer() {
         fill.color = color; c.drawPath(path, fill)
     }
 
-    override fun onTap(tapLatLong: LatLong, layerXY: Point, tapXY: Point): Boolean {
+    // Mapsforge pasa layerXY = null para capas sin posición propia (como esta): debe ser anulable,
+    // si no Kotlin lanza NullPointerException al tocar el mapa.
+    override fun onTap(tapLatLong: LatLong?, layerXY: Point?, tapXY: Point?): Boolean {
+        if (tapLatLong == null) return false
         val listener = onWaypointTap ?: return false
         val model = displayModel ?: return false
         val zoom = mapViewPositionZoom ?: return false

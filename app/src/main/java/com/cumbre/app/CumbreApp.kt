@@ -16,6 +16,7 @@ class CumbreApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        CrashReporter.install(this)
         // Mapsforge necesita inicializar su fábrica gráfica una sola vez por proceso.
         AndroidGraphicFactory.createInstance(this)
         container = AppContainer(this)

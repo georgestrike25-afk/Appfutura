@@ -136,6 +136,7 @@ private fun MainScaffold(container: AppContainer) {
     }
 
     RecoveryHandler(container, onOpenTracking = { nav.navigate(Dest.TRACKING) { launchSingleTop = true } })
+    CrashReportDialog()
 
     CompositionLocalProvider(LocalMessenger provides messenger, LocalGpxPicker provides openPicker) {
         Scaffold(
@@ -299,4 +300,41 @@ private fun RecoveryHandler(container: AppContainer, onOpenTracking: () -> Unit)
             dismissLabel = "Guardar",
         )
     }
+}
+
+/** Si la app se cerró por un error, lo muestra para poder copiarlo o compartirlo. */
+@Composable
+private fun CrashReportDialog() {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var report by remember { mutableStateOf(com.cumbre.app.CrashReporter.pending(context)) }
+    val text = report ?: return
+    val clipboard = androidx.compose.ui.platform.LocalClipboardManager.current
+    AlertDialog(
+        onDismissRequest = {},
+        title = { Text("Cumbre se cerró inesperadamente") },
+        text = {
+            androidx.compose.foundation.layout.Column {
+                Text("Podés copiar o compartir el detalle del error para que lo corrijamos. Solo queda en tu teléfono.")
+                Text(
+                    text.lineSequence().take(8).joinToString("\n"),
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(top = 12.dp),
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                val send = android.content.Intent(android.content.Intent.ACTION_SEND)
+                    .setType("text/plain")
+                    .putExtra(android.content.Intent.EXTRA_TEXT, text)
+                runCatching { context.startActivity(android.content.Intent.createChooser(send, "Compartir informe de error")) }
+            }) { Text("Compartir") }
+        },
+        dismissButton = {
+            androidx.compose.foundation.layout.Row {
+                TextButton(onClick = { clipboard.setText(androidx.compose.ui.text.AnnotatedString(text)) }) { Text("Copiar") }
+                TextButton(onClick = { com.cumbre.app.CrashReporter.clear(context); report = null }) { Text("Cerrar") }
+            }
+        },
+    )
 }
