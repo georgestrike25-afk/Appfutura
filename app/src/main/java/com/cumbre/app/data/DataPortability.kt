@@ -21,6 +21,7 @@ class DataPortability(
     private val routes: RouteRepository,
     private val activities: ActivityRepository,
     private val maps: MapRepository,
+    private val relief: ReliefRepository,
     private val settings: SettingsRepository,
     private val files: FileStore,
 ) {
@@ -71,7 +72,10 @@ class DataPortability(
         routeDao.deleteAll()
         files.routesDir.listFiles()?.forEach { it.delete() }
         files.clearCacheDirs()
-        if (includeMaps) maps.deleteAll()
+        if (includeMaps) {
+            maps.deleteAll()
+            relief.deleteAll()
+        }
         settings.resetAll()
     }
 }

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Landscape
 import androidx.compose.material.icons.rounded.LightMode
 import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.material.icons.rounded.Notifications
@@ -64,6 +65,14 @@ fun SettingsScreen(nav: NavController) {
                 { scope.launch { container.settings.setMapStyle(it) } },
                 contentPadding = PaddingValues(),
             )
+            CumbreCard(Modifier.padding(top = Spacing.m)) {
+                ListRow(
+                    "Mostrar relieve",
+                    subtitle = "Sombreado de montañas (requiere datos de elevación en Mapas sin conexión)",
+                    icon = Icons.Rounded.Landscape,
+                    trailing = { Switch(settings.showRelief, { v -> scope.launch { container.settings.setShowRelief(v) } }) },
+                )
+            }
             SectionTitle("Navegación")
             CumbreCard {
                 ListRow(

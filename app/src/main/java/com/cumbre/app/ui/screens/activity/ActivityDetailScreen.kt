@@ -55,7 +55,7 @@ import com.cumbre.app.ui.components.TextInputDialog
 import com.cumbre.app.ui.cumbreViewModel
 import com.cumbre.app.ui.navigation.Dest
 import com.cumbre.app.ui.platform.shareFile
-import com.cumbre.app.ui.platform.toMapTheme
+import com.cumbre.app.ui.platform.rememberMapLayers
 import com.cumbre.app.ui.theme.CumbreTheme
 import com.cumbre.app.ui.theme.Spacing
 import com.cumbre.core.format.Formatters
@@ -74,6 +74,7 @@ fun ActivityDetailScreen(nav: NavController, activityId: Long) {
     val vm = cumbreViewModel(key = "activity-$activityId") { ActivityDetailViewModel(activityId, container.activities) }
     val state by vm.state.collectAsStateWithLifecycle()
     val mapFiles by remember { container.maps.observeActiveMapFiles() }.collectAsStateWithLifecycle(initialValue = emptyList())
+    val layers = rememberMapLayers()
     var rename by remember { mutableStateOf(false) }
     var delete by remember { mutableStateOf(false) }
 
@@ -98,15 +99,14 @@ fun ActivityDetailScreen(nav: NavController, activityId: Long) {
             a == null -> EmptyState(Icons.Rounded.ErrorOutline, "La actividad no existe", "Puede que la hayas eliminado.")
             else -> {
                 val track = state.track
+                CumbreMap(
+                    modifier = Modifier.fillMaxWidth().height(260.dp),
+                    layers = layers,
+                    routeLines = track?.lines ?: emptyList(),
+                    fitBounds = track?.bounds,
+                    fitKey = track?.bounds,
+                )
                 Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
-                    CumbreMap(
-                        modifier = Modifier.fillMaxWidth().height(260.dp),
-                        mapFiles = mapFiles,
-                        theme = settings.mapStyle.toMapTheme(),
-                        routeLines = track?.lines ?: emptyList(),
-                        fitBounds = track?.bounds,
-                        fitKey = track?.bounds,
-                    )
                     Column(Modifier.padding(horizontal = Spacing.l, vertical = Spacing.m)) {
                         Text(
                             SimpleDateFormat("EEEE d 'de' MMMM 'de' yyyy, HH:mm", Locale.forLanguageTag("es-AR")).format(Date(a.startedAt))

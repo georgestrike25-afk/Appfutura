@@ -71,7 +71,7 @@ import com.cumbre.app.ui.platform.openLocationSettings
 import com.cumbre.app.ui.platform.rememberLiveLocation
 import com.cumbre.app.ui.platform.rememberLocationPermission
 import com.cumbre.app.ui.platform.toMapPosition
-import com.cumbre.app.ui.platform.toMapTheme
+import com.cumbre.app.ui.platform.rememberMapLayers
 import com.cumbre.app.ui.theme.CumbreColors
 import com.cumbre.app.ui.theme.CumbreTheme
 import com.cumbre.app.ui.theme.Spacing
@@ -91,6 +91,8 @@ fun HomeMapScreen(nav: NavController) {
     val scope = rememberCoroutineScope()
 
     val mapFiles by remember { container.maps.observeActiveMapFiles() }.collectAsStateWithLifecycle(initialValue = emptyList())
+
+    val layers = rememberMapLayers()
     val tracking by container.trackingManager.state.collectAsStateWithLifecycle()
     val recent by remember { container.routes.observeMostRecent() }.collectAsStateWithLifecycle(initialValue = null)
     val permission = rememberLocationPermission(container.settings)
@@ -112,8 +114,7 @@ fun HomeMapScreen(nav: NavController) {
     Box(Modifier.fillMaxSize()) {
         CumbreMap(
             modifier = Modifier.fillMaxSize(),
-            mapFiles = mapFiles,
-            theme = settings.mapStyle.toMapTheme(),
+            layers = layers,
             routeLines = tracking.route?.lines ?: emptyList(),
             waypoints = tracking.route?.waypoints?.map { MapWaypoint(it.first, it.second) } ?: emptyList(),
             recordedLines = tracking.recordedLines,
@@ -264,6 +265,14 @@ fun HomeMapScreen(nav: NavController) {
                             RadioButton(selected = settings.mapStyle == style, onClick = { scope.launch { container.settings.setMapStyle(style) } })
                             Text(label, style = MaterialTheme.typography.bodyLarge)
                         }
+                    }
+                    Row(
+                        Modifier.fillMaxWidth().clip(MaterialTheme.shapes.small)
+                            .clickable { scope.launch { container.settings.setShowRelief(!settings.showRelief) } }.padding(vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        androidx.compose.material3.Checkbox(checked = settings.showRelief, onCheckedChange = { v -> scope.launch { container.settings.setShowRelief(v) } })
+                        Text("Mostrar relieve", style = MaterialTheme.typography.bodyLarge)
                     }
                     Text(
                         if (mapFiles.isEmpty()) "No hay mapas instalados." else "${mapFiles.size} ${if (mapFiles.size == 1) "mapa activo" else "mapas activos"}.",

@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.OpenInNew
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Landscape
 import androidx.compose.material.icons.rounded.Map
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -29,6 +30,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,9 +42,13 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.cumbre.app.data.MapImportResult
 import com.cumbre.app.data.MapRepository
+import com.cumbre.app.data.ReliefImportResult
+import com.cumbre.app.data.ReliefRepository
 import com.cumbre.app.data.db.OfflineMapEntity
 import com.cumbre.app.ui.LocalAppContainer
 import com.cumbre.app.ui.LocalMessenger
+import com.cumbre.app.ui.LocalSettings
+import com.cumbre.app.ui.components.SecondaryButton
 import com.cumbre.app.ui.components.ConfirmDialog
 import com.cumbre.app.ui.components.CumbreCard
 import com.cumbre.app.ui.components.CumbreTopBar
@@ -68,9 +74,32 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+/** Página de descargas de Cumbre con mapas y relieve preparados (GitHub Releases). */
+const val CUMBRE_MAPS_URL = "https://github.com/georgestrike25-afk/Appfutura/releases/tag/mapas-argentina"
+
 data class MapImportProgress(val copiedBytes: Long, val totalBytes: Long?)
 
-class OfflineMapsViewModel(private val repo: MapRepository) : ViewModel() {
+class OfflineMapsViewModel(private val repo: MapRepository, private val relief: ReliefRepository) : ViewModel() {
+    val reliefBusy = MutableStateFlow(false)
+
+    fun importRelief(uri: Uri, onDone: (String) -> Unit) {
+        if (reliefBusy.value) return
+        error.value = null
+        reliefBusy.value = true
+        viewModelScope.launch {
+            when (val r = relief.import(uri)) {
+                is ReliefImportResult.Success -> onDone(
+                    "Relieve instalado: ${r.added.size} ${if (r.added.size == 1) "zona" else "zonas"}" +
+                        (if (r.skipped > 0) " (${r.skipped} archivos ignorados)." else "."),
+                )
+                is ReliefImportResult.Failed -> error.value = r.message
+            }
+            reliefBusy.value = false
+        }
+    }
+
+    fun deleteRelief() = viewModelScope.launch { relief.deleteAll() }
+
     val maps: StateFlow<List<OfflineMapEntity>?> = repo.observeMaps().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
     val progress = MutableStateFlow<MapImportProgress?>(null)
     val error = MutableStateFlow<String?>(null)
@@ -99,7 +128,15 @@ fun OfflineMapsScreen(nav: NavController) {
     val container = LocalAppContainer.current
     val messenger = LocalMessenger.current
     val context = LocalContext.current
-    val vm = cumbreViewModel { OfflineMapsViewModel(container.maps) }
+    val vm = cumbreViewModel { OfflineMapsViewModel(container.maps, container.relief) }
+    val reliefState by container.relief.state.collectAsStateWithLifecycle()
+    val reliefBusy by vm.reliefBusy.collectAsStateWithLifecycle()
+    val settings = LocalSettings.current
+    val scope = rememberCoroutineScope()
+    var confirmDeleteRelief by remember { mutableStateOf(false) }
+    val reliefPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
+        if (uri != null) vm.importRelief(uri, messenger)
+    }
     val maps by vm.maps.collectAsStateWithLifecycle()
     val progress by vm.progress.collectAsStateWithLifecycle()
     val error by vm.error.collectAsStateWithLifecycle()
@@ -154,6 +191,46 @@ fun OfflineMapsScreen(nav: NavController) {
             item { SectionTitle(if (list.isEmpty()) "No hay mapas instalados" else "Instalados") }
             items(list, key = { it.id }) { map -> MapRow(map, onToggle = { vm.setEnabled(map, it) }, onDelete = { toDelete = map }) }
             item {
+                SectionTitle("Relieve")
+                CumbreCard {
+                    Column(Modifier.padding(Spacing.l), verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
+                            IconBadge(Icons.Rounded.Landscape, MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.onPrimaryContainer)
+                            Column(Modifier.weight(1f)) {
+                                Text("Sombreado de relieve", style = MaterialTheme.typography.titleSmall)
+                                Text(
+                                    if (reliefState.installed) {
+                                        "${reliefState.tiles.size} ${if (reliefState.tiles.size == 1) "zona" else "zonas"} de 1° × 1° · ${Formatters.bytes(reliefState.sizeBytes)}"
+                                    } else {
+                                        "Sin datos de elevación instalados"
+                                    },
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                            if (reliefState.installed) {
+                                Switch(checked = settings.showRelief, onCheckedChange = { v -> scope.launch { container.settings.setShowRelief(v) } })
+                            }
+                        }
+                        Text(
+                            "Muestra montañas y valles con sombras sobre el mapa. Usa archivos de elevación SRTM (.hgt, o un .zip que los contenga), " +
+                                "uno por cada zona de 1° × 1°. Requiere también un mapa .map de la zona.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        if (reliefBusy) LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
+                            SecondaryButton("Importar relieve", onClick = { reliefPicker.launch(arrayOf("*/*")) }, icon = Icons.Rounded.Add, enabled = !reliefBusy, modifier = Modifier.weight(1f))
+                            if (reliefState.installed) {
+                                IconButton(onClick = { confirmDeleteRelief = true }) {
+                                    Icon(Icons.Rounded.Delete, contentDescription = "Eliminar relieve", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            item {
                 SectionTitle("¿De dónde saco mapas?")
                 CumbreCard {
                     Column(Modifier.padding(Spacing.l), verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
@@ -167,6 +244,7 @@ fun OfflineMapsScreen(nav: NavController) {
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
+                        QuietButton("Mapas y relieve listos para Cumbre", onClick = { context.openUrl(CUMBRE_MAPS_URL) }, icon = Icons.AutoMirrored.Rounded.OpenInNew)
                         QuietButton("Mapas de Argentina (Mapsforge)", onClick = { context.openUrl("https://download.mapsforge.org/maps/v5/south-america/") }, icon = Icons.AutoMirrored.Rounded.OpenInNew)
                         QuietButton("OpenAndroMaps", onClick = { context.openUrl("https://www.openandromaps.org/en/downloads/south-america") }, icon = Icons.AutoMirrored.Rounded.OpenInNew)
                         Text("Datos de mapa © colaboradores de OpenStreetMap (ODbL).", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -180,6 +258,17 @@ fun OfflineMapsScreen(nav: NavController) {
             icon = Icons.Rounded.Add,
             enabled = progress == null,
             modifier = Modifier.fillMaxWidth().padding(Spacing.l),
+        )
+    }
+
+    if (confirmDeleteRelief) {
+        ConfirmDialog(
+            title = "¿Eliminar el relieve?",
+            text = "Se borrarán los archivos de elevación (${Formatters.bytes(reliefState.sizeBytes)}). El mapa se verá sin sombreado.",
+            confirmLabel = "Eliminar",
+            destructive = true,
+            onConfirm = { vm.deleteRelief(); confirmDeleteRelief = false },
+            onDismiss = { confirmDeleteRelief = false },
         )
     }
 

@@ -9,7 +9,10 @@ import com.cumbre.app.data.db.ActivityDao
 import com.cumbre.app.data.db.ActivityEntity
 import com.cumbre.app.data.db.ActivityPointEntity
 import com.cumbre.app.data.toRecorded
+import com.cumbre.core.analysis.AnalysisCodec
+import com.cumbre.core.analysis.ProfilePoint
 import com.cumbre.core.geo.GeoPoint
+import com.cumbre.core.navigation.EtaEstimator
 import com.cumbre.core.navigation.FollowState
 import com.cumbre.core.navigation.RouteFollower
 import com.cumbre.core.navigation.TrackGeometry
@@ -55,6 +58,8 @@ data class FollowedRoute(
     val lines: List<List<GeoPoint>>,
     val waypoints: List<Pair<String?, GeoPoint>>,
     val totalMeters: Double,
+    /** Perfil de elevación de la ruta, para estimar el desnivel que falta. */
+    val profile: List<ProfilePoint> = emptyList(),
 )
 
 data class TrackingState(
@@ -70,6 +75,10 @@ data class TrackingState(
     val signal: GpsSignal = GpsSignal.SEARCHING,
     val follow: FollowState? = null,
     val currentSpeedMps: Double? = null,
+    /** Tiempo estimado para llegar al final de la ruta. */
+    val etaSeconds: Long? = null,
+    /** Tiempo estimado hasta el próximo waypoint. */
+    val etaToWaypointSeconds: Long? = null,
     /** Se recuperó una actividad interrumpida por el sistema. */
     val recovered: Boolean = false,
 ) {
@@ -309,6 +318,7 @@ class TrackingManager(
         val a = activity ?: return
         val follow = follower?.update(sample.geo, sample.accuracyMeters) ?: current.follow
         if (follow?.offRouteStarted == true && offRouteEnabled) _offRoute.tryEmit(OffRouteEvent(follow.distanceToTrackMeters))
+        val (eta, etaWaypoint) = estimateArrival(current.route, follow)
         when (val decision = filter.process(sample)) {
             is FilterDecision.Accept -> {
                 val point = RecordedPoint(
@@ -342,13 +352,50 @@ class TrackingManager(
                         stats = accumulator.snapshot(clock.elapsed(now)),
                         elapsedMillis = clock.elapsed(now),
                         currentSpeedMps = sample.speedMps,
+                        etaSeconds = eta,
+                        etaToWaypointSeconds = etaWaypoint,
                     )
                 }
             }
             is FilterDecision.Reject -> _state.update {
-                it.copy(lastFix = sample, signal = signalFor(sample, now), follow = follow, currentSpeedMps = sample.speedMps ?: it.currentSpeedMps)
+                it.copy(
+                    lastFix = sample,
+                    signal = signalFor(sample, now),
+                    follow = follow,
+                    currentSpeedMps = sample.speedMps ?: it.currentSpeedMps,
+                    etaSeconds = eta ?: it.etaSeconds,
+                    etaToWaypointSeconds = etaWaypoint ?: it.etaToWaypointSeconds,
+                )
             }
         }
+    }
+
+    /** Tiempo estimado al final y al próximo waypoint, según desnivel pendiente y ritmo propio. */
+    private fun estimateArrival(route: FollowedRoute?, follow: FollowState?): Pair<Long?, Long?> {
+        if (route == null || follow == null) return null to null
+        val progress = follow.progressMeters
+        val moving = accumulator.snapshot(0).movingMillis
+        val done = EtaEstimator.remainingClimb(route.profile, 0.0, progress)
+        val toEnd = EtaEstimator.estimateSeconds(
+            remainingMeters = follow.remainingMeters,
+            remaining = EtaEstimator.remainingClimb(route.profile, progress),
+            doneMeters = progress,
+            done = done,
+            movingMillis = moving,
+        )
+        val wp = follow.nextWaypoint
+        val toWaypoint = if (wp != null && follow.distanceToNextWaypointMeters != null) {
+            EtaEstimator.estimateSeconds(
+                remainingMeters = follow.distanceToNextWaypointMeters,
+                remaining = EtaEstimator.remainingClimb(route.profile, progress, wp.progressMeters),
+                doneMeters = progress,
+                done = done,
+                movingMillis = moving,
+            )
+        } else {
+            null
+        }
+        return toEnd to toWaypoint
     }
 
     private fun signalFor(sample: LocationSample, now: Long) =
@@ -360,7 +407,7 @@ class TrackingManager(
         val route = routes.getRoute(routeId) ?: return null
         val geometry = routes.loadGeometry(route) ?: return null
         val waypoints = geometry.waypoints.map { it.name to it.geo }
-        return FollowedRoute(route.id, route.name, geometry.lines, waypoints, route.distanceMeters)
+        return FollowedRoute(route.id, route.name, geometry.lines, waypoints, route.distanceMeters, AnalysisCodec.decodeProfile(route.profile))
     }
 
     private suspend fun buildFollower(route: FollowedRoute): RouteFollower {

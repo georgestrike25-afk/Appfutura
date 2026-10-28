@@ -3,6 +3,7 @@ package com.cumbre.app.map
 import android.content.Context
 import com.cumbre.core.geo.GeoBounds
 import com.cumbre.core.geo.GeoPoint
+import com.cumbre.core.maps.DemFiles
 import org.mapsforge.core.graphics.Cap
 import org.mapsforge.core.graphics.Join
 import org.mapsforge.core.graphics.Style
@@ -18,6 +19,10 @@ import org.mapsforge.map.android.view.MapView
 import org.mapsforge.map.datastore.MultiMapDataStore
 import org.mapsforge.map.layer.Layer
 import org.mapsforge.map.layer.cache.TileCache
+import org.mapsforge.map.layer.hills.AdaptiveClasyHillShading
+import org.mapsforge.map.layer.hills.DemFolderFS
+import org.mapsforge.map.layer.hills.HillsRenderConfig
+import org.mapsforge.map.layer.hills.MemoryCachingHgtReaderTileSource
 import org.mapsforge.map.layer.overlay.Polyline
 import org.mapsforge.map.layer.renderer.TileRendererLayer
 import org.mapsforge.map.reader.MapFile
@@ -92,9 +97,14 @@ class CumbreMapController(context: Context, dark: Boolean) {
         mapView.layerManager.redrawLayers()
     }
 
-    /** Carga los mapas indicados (combinados) con el tema elegido. Devuelve true si hay cartografía. */
-    fun setMapFiles(files: List<File>, theme: MapTheme): Boolean {
-        val key = files.joinToString("|") { it.absolutePath + ":" + it.length() } + "#" + theme.name
+    /**
+     * Carga los mapas indicados (combinados) con el tema elegido y, si [reliefDir] contiene
+     * archivos de elevación SRTM, el sombreado de relieve. Devuelve true si hay cartografía.
+     */
+    fun setMapFiles(files: List<File>, theme: MapTheme, reliefDir: File? = null): Boolean {
+        val reliefTiles = reliefDir?.let { DemFiles.installed(it) }.orEmpty()
+        val key = files.joinToString("|") { it.absolutePath + ":" + it.length() } + "#" + theme.name +
+            "#" + reliefTiles.joinToString(",") { it.fileName }
         if (key == mapKey) return tileLayer != null
         mapKey = key
         tileLayer?.let {
@@ -119,8 +129,15 @@ class CumbreMapController(context: Context, dark: Boolean) {
             }
             if (added > 0) {
                 dataStore = store
+                val hills = if (reliefTiles.isNotEmpty() && reliefDir != null) {
+                    HillsRenderConfig(
+                        MemoryCachingHgtReaderTileSource(DemFolderFS(reliefDir), AdaptiveClasyHillShading(), AndroidGraphicFactory.INSTANCE),
+                    ).also { it.indexOnThread() }
+                } else {
+                    null
+                }
                 val layer = AndroidUtil.createTileRendererLayer(
-                    tileCache, mapView.model.mapViewPosition, store, theme.theme, false, true, false,
+                    tileCache, mapView.model.mapViewPosition, store, theme.theme, false, true, false, hills,
                 )
                 tileLayer = layer
                 mapView.layerManager.layers.add(0, layer)
@@ -133,6 +150,11 @@ class CumbreMapController(context: Context, dark: Boolean) {
     }
 
     val hasMap: Boolean get() = tileLayer != null
+
+    /** Encuadra el recorrido completo. */
+    fun showWhole(lines: List<List<GeoPoint>>) {
+        GeoBounds.of(lines.flatten())?.let { fitBounds(it) }
+    }
 
     fun setRoute(lines: List<List<GeoPoint>>, waypoints: List<MapWaypoint>, trackColor: Int, haloColor: Int) {
         val key = listOf(System.identityHashCode(lines), lines.size, waypoints.size, trackColor, haloColor)

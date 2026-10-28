@@ -3,6 +3,7 @@ package com.cumbre.app.ui.screens.detail
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,6 +27,7 @@ import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.ErrorOutline
+import androidx.compose.material.icons.rounded.Fullscreen
 import androidx.compose.material.icons.rounded.Link
 import androidx.compose.material.icons.rounded.Map
 import androidx.compose.material.icons.rounded.MoreVert
@@ -61,6 +63,7 @@ import com.cumbre.app.ui.components.ElevationProfileChart
 import com.cumbre.app.ui.components.EmptyState
 import com.cumbre.app.ui.components.LoadingState
 import com.cumbre.app.ui.components.MapControlButton
+import com.cumbre.app.ui.components.MapZoomControls
 import com.cumbre.app.ui.components.MessageBanner
 import com.cumbre.app.ui.components.MessageKind
 import com.cumbre.app.ui.components.OfflineBadge
@@ -75,9 +78,11 @@ import com.cumbre.app.ui.cumbreViewModel
 import com.cumbre.app.ui.navigation.Dest
 import com.cumbre.app.ui.platform.LocationPurpose
 import com.cumbre.app.ui.platform.openUrl
+import com.cumbre.app.ui.platform.rememberLiveLocation
 import com.cumbre.app.ui.platform.rememberLocationPermission
+import com.cumbre.app.ui.platform.toMapPosition
 import com.cumbre.app.ui.platform.shareFile
-import com.cumbre.app.ui.platform.toMapTheme
+import com.cumbre.app.ui.platform.rememberMapLayers
 import com.cumbre.app.ui.theme.CumbreColors
 import com.cumbre.app.ui.theme.Spacing
 import com.cumbre.core.analysis.QualityIssue
@@ -97,9 +102,13 @@ fun RouteDetailScreen(nav: NavController, routeId: Long) {
     val vm = cumbreViewModel(key = "route-$routeId") { RouteDetailViewModel(routeId, container.routes, container.maps) }
     val state by vm.state.collectAsStateWithLifecycle()
     val mapFiles by remember { container.maps.observeActiveMapFiles() }.collectAsStateWithLifecycle(initialValue = emptyList())
+    val layers = rememberMapLayers()
     val tracking by container.trackingManager.state.collectAsStateWithLifecycle()
     val permission = rememberLocationPermission(container.settings)
     var menu by remember { mutableStateOf(false) }
+    // Tu posición se muestra siempre que haya permiso, aunque estés lejos del track.
+    val live by rememberLiveLocation(container.locationSource, permission.hasAnyPermission)
+    var mapController by remember { mutableStateOf<com.cumbre.app.map.CumbreMapController?>(null) }
     var dialog by remember { mutableStateOf<DetailDialog?>(null) }
 
     val exportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/gpx+xml")) { uri: Uri? ->
@@ -128,19 +137,28 @@ fun RouteDetailScreen(nav: NavController, routeId: Long) {
                 SecondaryButton("Volver", onClick = { nav.popBackStack() })
             })
         }
-        else -> Column(Modifier.fillMaxSize()) {
-            Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
-                Box(Modifier.fillMaxWidth().height(280.dp)) {
+        else -> Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+                // El mapa queda fuera de la zona desplazable para que los gestos (arrastrar,
+                // pellizcar) lleguen al mapa y no a la lista.
+                Box(Modifier.fillMaxWidth().height(300.dp)) {
                     CumbreMap(
                         modifier = Modifier.fillMaxSize(),
-                        mapFiles = mapFiles,
-                        theme = settings.mapStyle.toMapTheme(),
+                        layers = layers,
                         routeLines = state.geometry?.lines ?: emptyList(),
                         waypoints = state.geometry?.waypoints?.map { MapWaypoint(it.name, it.geo) } ?: emptyList(),
                         fitBounds = route.bounds,
                         fitKey = route.id,
+                        position = live?.toMapPosition(),
                         onWaypointTap = { messenger(it.name ?: "Waypoint") },
+                        onController = { mapController = it },
                     )
+                    Row(
+                        Modifier.align(Alignment.BottomEnd).padding(12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+                    ) {
+                        MapZoomControls(mapController)
+                        MapControlButton(Icons.Rounded.Fullscreen, "Ver mapa a pantalla completa", onClick = { nav.navigate(Dest.routeMap(route.id)) })
+                    }
                     Row(
                         Modifier.fillMaxWidth().windowInsetsPadding(WindowInsets.statusBars).padding(horizontal = 14.dp, vertical = 8.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -176,13 +194,14 @@ fun RouteDetailScreen(nav: NavController, routeId: Long) {
                         }
                     }
                 }
+            Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
                 Column(Modifier.padding(horizontal = Spacing.l, vertical = Spacing.m)) {
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         OfflineBadge(state.coverage?.level, state.coveringMaps.firstOrNull()?.displayName)
                         Tag(sourceLabel(route.source))
                     }
                     Spacer(Modifier.height(6.dp))
-                    Text(route.name, style = MaterialTheme.typography.headlineSmall)
+                    Text(route.name, style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onBackground)
                     route.description?.takeIf { it.isNotBlank() }?.let {
                         Text(it.take(400), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
                     }

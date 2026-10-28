@@ -38,6 +38,11 @@ class MarkersLayer(private val density: Float) : Layer() {
     private val fill = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
     private val stroke = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE }
     private val path = Path()
+    private val label = Paint(Paint.ANTI_ALIAS_FLAG).apply { textSize = 12.5f * density; isFakeBoldText = true }
+    private val labelHalo = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        textSize = 12.5f * density; isFakeBoldText = true; style = Paint.Style.STROKE; strokeWidth = 3.5f * density
+        strokeJoin = Paint.Join.ROUND
+    }
 
     override fun draw(boundingBox: BoundingBox, zoomLevel: Byte, canvas: Canvas, topLeftPoint: Point, rotation: Rotation) {
         val c = AndroidGraphicFactory.getCanvas(canvas)
@@ -51,6 +56,15 @@ class MarkersLayer(private val density: Float) : Layer() {
             fill.color = WHITE; c.drawCircle(cx, cy, 10 * d, fill)
             stroke.color = MOUNTAIN; stroke.strokeWidth = 2 * d; c.drawCircle(cx, cy, 10 * d, stroke)
             drawFlag(c, cx, cy, MOUNTAIN, d)
+            // Nombre del waypoint junto al marcador, legible sobre cualquier fondo.
+            val name = w.name
+            if (!name.isNullOrBlank() && zoomLevel >= LABEL_MIN_ZOOM) {
+                val text = if (name.length > 32) name.take(31) + "…" else name
+                labelHalo.color = WHITE
+                label.color = MOUNTAIN
+                c.drawText(text, cx + 14 * d, cy + 4.5f * d, labelHalo)
+                c.drawText(text, cx + 14 * d, cy + 4.5f * d, label)
+            }
         }
         start?.let { s ->
             val cx = x(s); val cy = y(s)
@@ -138,5 +152,6 @@ class MarkersLayer(private val density: Float) : Layer() {
         private const val ORANGE = 0xFFFF8A00.toInt()
         private const val DARK = 0xFF1E1E1E.toInt()
         private const val GREY = 0xFF8A9590.toInt()
+        private const val LABEL_MIN_ZOOM: Byte = 12
     }
 }

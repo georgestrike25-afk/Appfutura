@@ -49,7 +49,7 @@ import com.cumbre.app.ui.components.SecondaryButton
 import com.cumbre.app.ui.components.SectionTitle
 import com.cumbre.app.ui.cumbreViewModel
 import com.cumbre.app.ui.navigation.Dest
-import com.cumbre.app.ui.platform.toMapTheme
+import com.cumbre.app.ui.platform.rememberMapLayers
 import com.cumbre.app.ui.screens.detail.QualityIssuesList
 import com.cumbre.app.ui.screens.detail.WaypointList
 import com.cumbre.app.ui.screens.detail.routeStats
@@ -67,6 +67,7 @@ fun ImportScreen(nav: NavController, uri: Uri?) {
     val vm = cumbreViewModel(key = "import-$uri") { ImportViewModel(uri, container.routes, container.settings) }
     val state by vm.state.collectAsStateWithLifecycle()
     val mapFiles by remember { container.maps.observeActiveMapFiles() }.collectAsStateWithLifecycle(initialValue = emptyList())
+    val layers = rememberMapLayers()
 
     LaunchedEffect(state) {
         val s = state
@@ -99,16 +100,15 @@ fun ImportScreen(nav: NavController, uri: Uri?) {
                 val p = s.pending
                 val lines = remember(p) { p.document.lines().map { l -> l.map { it.geo } } }
                 val waypoints = remember(p) { p.document.waypoints.map { MapWaypoint(it.name, it.geo) } }
+                CumbreMap(
+                    modifier = Modifier.fillMaxWidth().height(240.dp),
+                    layers = layers,
+                    routeLines = lines,
+                    waypoints = waypoints,
+                    fitBounds = p.analysis.stats.bounds,
+                    onWaypointTap = { messenger(it.name ?: "Waypoint") },
+                )
                 Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
-                    CumbreMap(
-                        modifier = Modifier.fillMaxWidth().height(240.dp),
-                        mapFiles = mapFiles,
-                        theme = settings.mapStyle.toMapTheme(),
-                        routeLines = lines,
-                        waypoints = waypoints,
-                        fitBounds = p.analysis.stats.bounds,
-                        onWaypointTap = { messenger(it.name ?: "Waypoint") },
-                    )
                     Column(Modifier.padding(horizontal = Spacing.l, vertical = Spacing.m)) {
                         p.duplicateOf?.let { existing ->
                             MessageBanner(

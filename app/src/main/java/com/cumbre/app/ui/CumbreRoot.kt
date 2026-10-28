@@ -50,6 +50,7 @@ import com.cumbre.app.ui.navigation.TopLevels
 import com.cumbre.app.ui.screens.activity.ActivityDetailScreen
 import com.cumbre.app.ui.screens.activity.ActivityListScreen
 import com.cumbre.app.ui.screens.detail.RouteDetailScreen
+import com.cumbre.app.ui.screens.detail.RouteMapScreen
 import com.cumbre.app.ui.screens.home.HomeMapScreen
 import com.cumbre.app.ui.screens.importer.ImportScreen
 import com.cumbre.app.ui.screens.more.AboutScreen
@@ -173,6 +174,9 @@ private fun CumbreNavHost(nav: NavHostController, modifier: Modifier) {
         composable(Dest.MORE) { MoreScreen(nav) }
         composable(Dest.ROUTE_DETAIL, arguments = listOf(navArgument("id") { type = NavType.LongType })) { entry ->
             RouteDetailScreen(nav, entry.arguments?.getLong("id") ?: 0L)
+        }
+        composable(Dest.ROUTE_MAP, arguments = listOf(navArgument("id") { type = NavType.LongType })) { entry ->
+            RouteMapScreen(nav, entry.arguments?.getLong("id") ?: 0L)
         }
         composable(
             Dest.IMPORT,

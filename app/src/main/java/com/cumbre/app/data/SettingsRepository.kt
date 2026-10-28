@@ -23,6 +23,8 @@ data class Settings(
     val offRouteThresholdMeters: Int = 50,
     val keepScreenOn: Boolean = true,
     val mapStyle: MapStyle = MapStyle.DEFAULT,
+    /** Sombreado de relieve (requiere archivos de elevación instalados). */
+    val showRelief: Boolean = true,
     val locationPermissionRequested: Boolean = false,
     val notificationPermissionRequested: Boolean = false,
     /** Enlace de Wikiloc recibido que se asociará a la próxima importación. */
@@ -39,6 +41,7 @@ class SettingsRepository(private val context: Context) {
         val offRouteThreshold = intPreferencesKey("off_route_threshold")
         val keepScreenOn = booleanPreferencesKey("keep_screen_on")
         val mapStyle = stringPreferencesKey("map_style")
+        val relief = booleanPreferencesKey("show_relief")
         val locationAsked = booleanPreferencesKey("location_asked")
         val notificationsAsked = booleanPreferencesKey("notifications_asked")
         val pendingWikiloc = stringPreferencesKey("pending_wikiloc_url")
@@ -52,6 +55,7 @@ class SettingsRepository(private val context: Context) {
             offRouteThresholdMeters = p[Keys.offRouteThreshold] ?: 50,
             keepScreenOn = p[Keys.keepScreenOn] ?: true,
             mapStyle = p[Keys.mapStyle]?.let { runCatching { MapStyle.valueOf(it) }.getOrNull() } ?: MapStyle.DEFAULT,
+            showRelief = p[Keys.relief] ?: true,
             locationPermissionRequested = p[Keys.locationAsked] ?: false,
             notificationPermissionRequested = p[Keys.notificationsAsked] ?: false,
             pendingWikilocUrl = p[Keys.pendingWikiloc],
@@ -66,6 +70,7 @@ class SettingsRepository(private val context: Context) {
     suspend fun setOffRouteThreshold(meters: Int) = context.dataStore.edit { it[Keys.offRouteThreshold] = meters }
     suspend fun setKeepScreenOn(enabled: Boolean) = context.dataStore.edit { it[Keys.keepScreenOn] = enabled }
     suspend fun setMapStyle(style: MapStyle) = context.dataStore.edit { it[Keys.mapStyle] = style.name }
+    suspend fun setShowRelief(enabled: Boolean) = context.dataStore.edit { it[Keys.relief] = enabled }
     suspend fun setLocationPermissionRequested() = context.dataStore.edit { it[Keys.locationAsked] = true }
     suspend fun setNotificationPermissionRequested() = context.dataStore.edit { it[Keys.notificationsAsked] = true }
     suspend fun setPendingWikilocUrl(url: String?) = context.dataStore.edit {

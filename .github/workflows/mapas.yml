@@ -1,0 +1,55 @@
+name: Mapas de Argentina
+
+# Prepara archivos listos para importar en Cumbre y los publica en la release «mapas-argentina»:
+# - argentina.map: mapa vectorial oficial de Mapsforge (datos © colaboradores de OpenStreetMap, ODbL).
+# - relieve-cordoba.zip: teselas SRTM 1" (NASA, dominio público) de las Sierras de Córdoba.
+# Se ejecuta a mano o cuando cambia este archivo, no en cada push.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/mapas.yml"
+
+jobs:
+  mapas:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Descargar mapa de Argentina (Mapsforge)
+        run: |
+          mkdir -p salida
+          curl -fL --retry 3 -o salida/argentina.map https://download.mapsforge.org/maps/v5/south-america/argentina.map
+          head -c 20 salida/argentina.map | grep -q "mapsforge binary OSM"
+          ls -lh salida/argentina.map
+
+      - name: Descargar relieve de las Sierras de Córdoba (SRTM)
+        continue-on-error: true
+        run: |
+          mkdir -p dem
+          for tile in S31W065 S31W066 S32W065 S32W066 S33W065 S33W066; do
+            curl -fL --retry 3 -o "dem/$tile.zip" "https://step.esa.int/auxdata/dem/SRTMGL1/$tile.SRTMGL1.hgt.zip" || echo "No disponible: $tile"
+          done
+          cd dem
+          for z in *.zip; do unzip -o -q "$z" || true; done
+          ls -lh *.hgt
+          zip -9 -q ../salida/relieve-cordoba.zip *.hgt
+          ls -lh ../salida
+
+      - name: Publicar en la release «mapas-argentina»
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete mapas-argentina --yes --cleanup-tag || true
+          gh release create mapas-argentina salida/* \
+            --target "${{ github.sha }}" \
+            --title "Mapas y relieve para Cumbre" \
+            --notes "Archivos listos para importar en Cumbre (Más › Mapas sin conexión).
+
+          - argentina.map: mapa vectorial offline de Mapsforge. Datos © colaboradores de OpenStreetMap (licencia ODbL).
+          - relieve-cordoba.zip: datos de elevación SRTM (NASA, dominio público) de las Sierras de Córdoba, para el sombreado de relieve.
+
+          Descargalos desde el celular con Wi-Fi y luego importalos en Cumbre."

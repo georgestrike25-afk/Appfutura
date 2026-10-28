@@ -14,6 +14,7 @@ object Dest {
     const val ACTIVITY = "activity"
     const val MORE = "more"
     const val ROUTE_DETAIL = "route/{id}"
+    const val ROUTE_MAP = "route/{id}/map"
     const val IMPORT = "import?uri={uri}"
     const val TRACKING = "tracking"
     const val ACTIVITY_DETAIL = "activity/{id}"
@@ -24,6 +25,7 @@ object Dest {
     const val ABOUT = "about"
 
     fun routeDetail(id: Long) = "route/$id"
+    fun routeMap(id: Long) = "route/$id/map"
     fun activityDetail(id: Long) = "activity/$id"
     fun import(uri: Uri) = "import?uri=${Uri.encode(uri.toString())}"
     fun wikiloc(url: String? = null) = if (url == null) "wikiloc" else "wikiloc?url=${Uri.encode(url)}"

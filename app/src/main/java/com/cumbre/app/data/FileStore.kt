@@ -20,6 +20,10 @@ class FileStore(private val context: Context) {
     val mapsDir: File
         get() = (context.getExternalFilesDir("maps") ?: File(context.filesDir, "maps")).apply { mkdirs() }
 
+    /** Archivos de elevación SRTM (.hgt) para el sombreado de relieve. */
+    val demDir: File
+        get() = (context.getExternalFilesDir("dem") ?: File(context.filesDir, "dem")).apply { mkdirs() }
+
     fun resolve(relativePath: String): File = File(context.filesDir, relativePath)
 
     fun relativize(file: File): String = file.relativeTo(context.filesDir).path
@@ -72,6 +76,9 @@ class FileStore(private val context: Context) {
         }
         return total
     }
+
+    fun openInput(uri: Uri): InputStream =
+        context.contentResolver.openInputStream(uri) ?: throw IOException("No se pudo abrir el archivo seleccionado.")
 
     fun freeBytes(dir: File): Long = runCatching { StatFs(dir.absolutePath).availableBytes }.getOrDefault(0L)
 

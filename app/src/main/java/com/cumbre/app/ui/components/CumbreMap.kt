@@ -8,17 +8,17 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import com.cumbre.app.map.CumbreMapController
 import com.cumbre.app.map.MapPosition
-import com.cumbre.app.map.MapTheme
 import com.cumbre.app.map.MapWaypoint
 import com.cumbre.app.ui.theme.CumbreTheme
 import com.cumbre.core.geo.GeoBounds
 import com.cumbre.core.geo.GeoPoint
-import java.io.File
+import com.cumbre.app.ui.platform.MapLayers
 
 /**
  * Conserva los mapas de las pantallas principales (Mapa y Navegación) mientras vive la
@@ -45,8 +45,7 @@ val LocalMapControllerStore = compositionLocalOf<MapControllerStore?> { null }
 @Composable
 fun CumbreMap(
     modifier: Modifier = Modifier,
-    mapFiles: List<File>,
-    theme: MapTheme,
+    layers: MapLayers,
     routeLines: List<List<GeoPoint>> = emptyList(),
     waypoints: List<MapWaypoint> = emptyList(),
     recordedLines: List<List<GeoPoint>> = emptyList(),
@@ -77,14 +76,15 @@ fun CumbreMap(
             (controller.mapView.parent as? ViewGroup)?.removeView(controller.mapView)
             controller.mapView
         },
-        modifier = modifier,
+        // El MapView no debe dibujar fuera de su recuadro (por ejemplo, sobre el título).
+        modifier = modifier.clipToBounds(),
         onRelease = { view -> (view.parent as? ViewGroup)?.removeView(view) },
     )
     val trackColor = CumbreTheme.extra.track.toArgb()
     val haloColor = CumbreTheme.extra.trackHalo.toArgb()
     val recordedColor = CumbreTheme.extra.recorded.toArgb()
-    LaunchedEffect(controller, mapFiles, theme) {
-        val ok = controller.setMapFiles(mapFiles, theme)
+    LaunchedEffect(controller, layers) {
+        val ok = controller.setMapFiles(layers.files, layers.theme, layers.reliefDir)
         onMapAvailability?.invoke(ok)
     }
     SideEffect {

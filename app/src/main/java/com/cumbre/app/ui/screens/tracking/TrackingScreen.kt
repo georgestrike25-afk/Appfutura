@@ -65,6 +65,7 @@ import com.cumbre.app.ui.components.CumbreMap
 import com.cumbre.app.ui.components.EmptyState
 import com.cumbre.app.ui.components.MapBottomPanel
 import com.cumbre.app.ui.components.MapControlButton
+import com.cumbre.app.ui.components.MapZoomControls
 import com.cumbre.app.ui.components.MessageBanner
 import com.cumbre.app.ui.components.MessageKind
 import com.cumbre.app.ui.components.PrimaryButton
@@ -72,7 +73,7 @@ import com.cumbre.app.ui.components.SecondaryButton
 import com.cumbre.app.ui.navigation.Dest
 import com.cumbre.app.ui.platform.rememberLiveLocation
 import com.cumbre.app.ui.platform.toMapPosition
-import com.cumbre.app.ui.platform.toMapTheme
+import com.cumbre.app.ui.platform.rememberMapLayers
 import com.cumbre.app.ui.theme.CumbreColors
 import com.cumbre.app.ui.theme.CumbreTheme
 import com.cumbre.app.ui.theme.DataText
@@ -89,10 +90,12 @@ fun TrackingScreen(nav: NavController) {
     val scope = rememberCoroutineScope()
     val state by container.trackingManager.state.collectAsStateWithLifecycle()
     val mapFiles by remember { container.maps.observeActiveMapFiles() }.collectAsStateWithLifecycle(initialValue = emptyList())
+    val layers = rememberMapLayers()
     var follow by rememberSaveable { mutableStateOf(true) }
     var courseUp by rememberSaveable { mutableStateOf(false) }
     var lastBearing by remember { mutableStateOf(0f) }
     var finishDialog by remember { mutableStateOf(false) }
+    var mapController by remember { mutableStateOf<com.cumbre.app.map.CumbreMapController?>(null) }
     var discardDialog by remember { mutableStateOf(false) }
 
     // Mantener la pantalla encendida durante la navegación, si el usuario lo prefiere.
@@ -128,8 +131,7 @@ fun TrackingScreen(nav: NavController) {
     Box(Modifier.fillMaxSize()) {
         CumbreMap(
             modifier = Modifier.fillMaxSize(),
-            mapFiles = mapFiles,
-            theme = settings.mapStyle.toMapTheme(),
+            layers = layers,
             routeLines = state.route?.lines ?: emptyList(),
             waypoints = state.route?.waypoints?.map { MapWaypoint(it.first, it.second) } ?: emptyList(),
             recordedLines = state.recordedLines,
@@ -140,6 +142,7 @@ fun TrackingScreen(nav: NavController) {
             fitKey = state.activityId,
             retainKey = "tracking",
             onWaypointTap = { messenger(it.name ?: "Waypoint") },
+            onController = { mapController = it },
         )
 
         Column(
@@ -188,6 +191,7 @@ fun TrackingScreen(nav: NavController) {
                 active = follow,
                 onClick = { follow = !follow },
             )
+            MapZoomControls(mapController)
         }
 
         MapBottomPanel(Modifier.align(Alignment.BottomCenter).windowInsetsPadding(WindowInsets.navigationBars)) {
@@ -259,26 +263,50 @@ private fun TrackingPanel(
     onFinish: () -> Unit,
 ) {
     val follow = state.follow
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom) {
-        Column(Modifier.weight(1f)) {
-            Row(verticalAlignment = Alignment.Bottom) {
-                Text(Formatters.kilometersValue(state.stats.distanceMeters), style = DataText.Hero)
-                Text(" km", style = DataText.Medium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 4.dp))
+    if (follow != null) {
+        // Con una ruta, lo principal es cuánto falta para llegar (distancia y tiempo).
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom) {
+            Column(Modifier.weight(1f)) {
+                Text(
+                    if (follow.nearEnd) "Llegaste" else "Te falta",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(if (follow.nearEnd) "¡Final!" else Formatters.distance(follow.remainingMeters), style = DataText.Hero)
+                state.etaSeconds?.takeIf { !follow.nearEnd }?.let { eta ->
+                    Text(
+                        "≈ ${Formatters.duration(eta)} · llegada ${arrivalClock(eta)}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
             }
-            Text(
-                when {
-                    follow != null && follow.nearEnd -> "¡Llegaste al final del recorrido!"
-                    follow != null -> "Recorrido · quedan ${Formatters.distance(follow.remainingMeters)}"
-                    state.route != null -> "Recorrido · esperando posición sobre el track"
-                    else -> "Recorrido"
-                },
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            Column(horizontalAlignment = Alignment.End) {
+                Text(Formatters.clock(state.elapsedMillis), style = DataText.Large)
+                Text(
+                    if (state.status == TrackingStatus.PAUSED) "En pausa" else "Recorrido ${Formatters.distance(state.stats.distanceMeters)}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
-        Column(horizontalAlignment = Alignment.End) {
-            Text(Formatters.clock(state.elapsedMillis), style = DataText.Large)
-            Text(if (state.status == TrackingStatus.PAUSED) "En pausa" else "Tiempo", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    } else {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom) {
+            Column(Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.Bottom) {
+                    Text(Formatters.kilometersValue(state.stats.distanceMeters), style = DataText.Hero)
+                    Text(" km", style = DataText.Medium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 4.dp))
+                }
+                Text(
+                    if (state.route != null) "Recorrido · esperando posición sobre el track" else "Recorrido",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Column(horizontalAlignment = Alignment.End) {
+                Text(Formatters.clock(state.elapsedMillis), style = DataText.Large)
+                Text(if (state.status == TrackingStatus.PAUSED) "En pausa" else "Tiempo", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
         }
     }
     HorizontalDivider(Modifier.padding(top = Spacing.m), color = MaterialTheme.colorScheme.outlineVariant)
@@ -292,7 +320,8 @@ private fun TrackingPanel(
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = Spacing.m)) {
             Icon(Icons.Rounded.Flag, contentDescription = null, tint = CumbreColors.Naranja, modifier = Modifier.size(20.dp))
             Text(
-                "${wp.name ?: "Próximo waypoint"} · a ${Formatters.distance(follow.distanceToNextWaypointMeters ?: 0.0)} por el track",
+                "${wp.name ?: "Próximo waypoint"} · a ${Formatters.distance(follow.distanceToNextWaypointMeters ?: 0.0)}" +
+                    (state.etaToWaypointSeconds?.let { " (≈ ${Formatters.duration(it)})" } ?: ""),
                 style = MaterialTheme.typography.bodyMedium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -316,6 +345,9 @@ private fun TrackingPanel(
         )
     }
 }
+
+private fun arrivalClock(etaSeconds: Long): String =
+    java.text.SimpleDateFormat("HH:mm", java.util.Locale.ROOT).format(java.util.Date(System.currentTimeMillis() + etaSeconds * 1000))
 
 @Composable
 private fun PanelStat(value: String, unit: String, label: String, modifier: Modifier) {

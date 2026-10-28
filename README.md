@@ -54,6 +54,11 @@ Cumbre es una app Android de trekking. Convierte rutas encontradas en Wikiloc, o
   - distancia recorrida y restante, medida a lo largo del track real;
   - tiempo, velocidad actual y media, altitud y desnivel estimado;
   - distancia al siguiente waypoint por el track.
+- **«Te falta»**: la distancia hasta el final (en metros cuando estás cerca) y el **tiempo estimado con la hora de llegada**.
+  - Al comienzo, el tiempo usa la norma DIN 33466 con el desnivel que falta según el perfil de la ruta.
+  - Después de 10 minutos y 800 m en movimiento, se ajusta a tu ritmo real.
+  - Lo mismo para el próximo waypoint.
+- **Tu posición siempre visible**, aunque estés lejos del track: en el detalle de ruta, en el mapa a pantalla completa y en la navegación.
 - **Distancia a la ruta** calculada sobre la geometría real. En recorridos de ida y vuelta, la búsqueda por ventana evita que el progreso salte al tramo de regreso.
 - **Aviso de desvío** configurable (25, 50, 100 o 200 m), con vibración y notificación. Usa histéresis y exige tres lecturas para no dar falsas alarmas.
 - **Indicador de señal GPS**: buscando, buena, débil o perdida, con la precisión en metros. Si se pierde la señal se muestra la última posición atenuada y no se graban puntos.
@@ -78,6 +83,11 @@ Cumbre es una app Android de trekking. Convierte rutas encontradas en Wikiloc, o
 - **Gestión**: varios mapas combinados, activar o desactivar cada uno, eliminar con confirmación, ver el espacio usado y el libre, y detección de archivos borrados o ilegibles.
 - **Cobertura del recorrido** (completa, parcial o ninguna) en la biblioteca y en el detalle de cada ruta.
 - **Dos estilos de mapa**: Cumbre (predeterminado) y Osmarender.
+- **Relieve sombreado** a partir de datos de elevación SRTM (`.hgt`, sueltos o en `.zip`), que se puede activar y desactivar. Se validan el nombre y el tamaño de cada tesela, y se ignoran rutas internas maliciosas de los ZIP.
+- **Mapa a pantalla completa** de cada ruta, con gestos libres:
+  - botones + y −, ver toda la ruta, mi ubicación y relieve;
+  - perfil de elevación y coordenadas.
+- **Nombres de los waypoints** escritos sobre el mapa.
 - **Sin mapa instalado** se ve el track y la posición sobre un fondo liso, con un aviso. Nunca se simula cartografía.
 
 ### Wikiloc
@@ -210,6 +220,11 @@ Qué cubren las pruebas de `core`:
 Cumbre **no** hace scraping, no usa endpoints privados, no automatiza sesiones y no guarda contraseñas de Wikiloc. No existe una API pública gratuita para descargar rutas, por eso el flujo principal es el archivo GPX. La app sigue siendo útil aunque la web de Wikiloc cambie.
 
 ### Obtener e instalar mapas offline
+
+**Opción rápida**: en la [página de mapas de Cumbre](https://github.com/georgestrike25-afk/Appfutura/releases/tag/mapas-argentina) están `argentina.map` y `relieve-cordoba.zip` (relieve de las Sierras de Córdoba), preparados automáticamente por el workflow `mapas.yml`. Descargalos desde el celular e importalos en **Más › Mapas sin conexión** (el mapa con «Importar archivo .map», el relieve con «Importar relieve»).
+
+Otras fuentes:
+
 1. Con Wi-Fi, descargá desde el navegador el mapa `.map` de tu provincia o región:
    - [Servidor oficial de Mapsforge](https://download.mapsforge.org/maps/v5/south-america/) (por ejemplo, `argentina.map`);
    - [OpenAndroMaps](https://www.openandromaps.org/en/downloads/south-america), con mapas orientados a senderismo. Viene en ZIP: descomprimilo y usá el `.map`.
@@ -254,7 +269,8 @@ Solo los enlaces externos (Wikiloc y las páginas de descarga de mapas) se abren
 - **No hay indicaciones de giro.** Un GPX es solo una línea; Cumbre no inventa instrucciones.
 - **El desnivel de las actividades es estimado** a partir de la altitud GPS (filtro de 10 m), que es menos precisa que la horizontal. No se usa el barómetro.
 - **La orientación del mapa según el rumbo** usa el rumbo del GPS. No usa la brújula del teléfono, así que necesita movimiento.
-- **No hay relieve sombreado** (hillshading): requiere modelos de elevación aparte.
+- **El relieve requiere datos de elevación de cada zona** (1° × 1°, unos 25 MB por tesela SRTM de 1"). Solo se preparan los de las Sierras de Córdoba; para otras zonas hay que importar los `.hgt` correspondientes (por ejemplo, desde [viewfinderpanoramas.org](http://viewfinderpanoramas.org/dem3.html)).
+- **No hay imagen satelital**: los mapas son vectoriales, generados con datos de OpenStreetMap.
 - **Los textos de la interfaz están en español dentro del código**, no en `strings.xml`. Si se agregan idiomas, hay que externalizarlos.
 - **Los datos se guardan sin cifrado propio de la app.** Los protege el cifrado del dispositivo.
 - **Esquema de base de datos en versión 1.** Las próximas versiones deben agregar migraciones de Room.
@@ -262,6 +278,7 @@ Solo los enlaces externos (Wikiloc y las páginas de descarga de mapas) se abren
 
 ## Licencias y atribuciones
 
+- **Datos de elevación SRTM**: NASA/USGS, dominio público.
 - **Datos de mapa** © colaboradores de [OpenStreetMap](https://www.openstreetmap.org/copyright), bajo licencia ODbL.
 - **Mapsforge** © mapsforge.org, bajo LGPL 3.0.
 - **Montserrat e Inter** bajo SIL Open Font License 1.1 (ver `docs/licencias/`).
