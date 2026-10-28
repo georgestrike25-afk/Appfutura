@@ -77,6 +77,7 @@ fun RouteMapScreen(nav: NavController, routeId: Long) {
     val tracking by container.trackingManager.state.collectAsStateWithLifecycle()
     val relief by container.relief.state.collectAsStateWithLifecycle()
     val layers = rememberMapLayers()
+    val startRecording = com.cumbre.app.ui.platform.rememberRecordingStarter(nav)
     val permission = rememberLocationPermission(container.settings)
     var controller by remember { mutableStateOf<CumbreMapController?>(null) }
     var showLocation by rememberSaveable { mutableStateOf(permission.hasAnyPermission) }
@@ -184,13 +185,7 @@ fun RouteMapScreen(nav: NavController, routeId: Long) {
                             when {
                                 tracking.isActive && tracking.route?.id == route.id -> nav.navigate(Dest.TRACKING)
                                 tracking.isActive -> messenger("Ya hay un recorrido en curso: finalizalo antes de iniciar otro.")
-                                else -> permission.request(LocationPurpose.NAVIGATE) {
-                                    scope.launch {
-                                        runCatching { container.trackingManager.start(routeId) }
-                                            .onSuccess { nav.navigate(Dest.TRACKING) }
-                                            .onFailure { messenger("No se pudo iniciar el recorrido: ${it.message}") }
-                                    }
-                                }
+                                else -> startRecording(routeId)
                             }
                         },
                     )

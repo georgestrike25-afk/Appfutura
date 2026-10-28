@@ -31,6 +31,15 @@ class FormattersTest {
     }
 
     @Test
+    fun `valores con unidad separada y duracion compacta`() {
+        assertEquals("15,0" to "km", Formatters.distanceParts(15_000.0))
+        assertEquals("850" to "m", Formatters.distanceParts(850.2))
+        assertEquals("6 h 16", Formatters.durationCompact(6 * 3600L + 16 * 60))
+        assertEquals("2 h 05", Formatters.durationCompact(2 * 3600L + 5 * 60))
+        assertEquals("45 min", Formatters.durationCompact(45 * 60L))
+    }
+
+    @Test
     fun `velocidades`() {
         assertEquals("3,6 km/h", Formatters.speedKmh(1.0))
         assertEquals("1,0 m/s", Formatters.speedMps(1.0))

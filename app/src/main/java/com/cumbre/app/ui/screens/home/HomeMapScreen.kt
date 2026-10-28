@@ -52,6 +52,15 @@ import androidx.navigation.NavController
 import com.cumbre.app.R
 import com.cumbre.app.data.MapStyle
 import com.cumbre.app.map.MapWaypoint
+import com.cumbre.app.map.CumbreMapController
+import com.cumbre.app.ui.components.AccentButton
+import com.cumbre.app.ui.components.MapCapsule
+import com.cumbre.app.ui.components.MapZoomControls
+import com.cumbre.app.ui.platform.rememberRecordingStarter
+import com.cumbre.core.geo.GeoMath
+import androidx.compose.material.icons.rounded.GpsFixed
+import androidx.compose.material.icons.rounded.GpsNotFixed
+import androidx.compose.material.icons.rounded.Navigation
 import com.cumbre.app.ui.LocalAppContainer
 import com.cumbre.app.ui.LocalGpxPicker
 import com.cumbre.app.ui.LocalMessenger
@@ -103,6 +112,8 @@ fun HomeMapScreen(nav: NavController) {
     var lastBearing by remember { mutableStateOf(0f) }
     var layersDialog by remember { mutableStateOf(false) }
     var mapAvailable by remember { mutableStateOf(true) }
+    var controller by remember { mutableStateOf<CumbreMapController?>(null) }
+    val startRecording = rememberRecordingStarter(nav)
 
     val live by rememberLiveLocation(container.locationSource, showLocation && !tracking.isActive && permission.hasAnyPermission)
     val fix = if (tracking.isActive) tracking.lastFix else live
@@ -124,46 +135,34 @@ fun HomeMapScreen(nav: NavController) {
             retainKey = "home",
             onWaypointTap = { w -> messenger(w.name ?: "Waypoint sin nombre") },
             onMapAvailability = { mapAvailable = it },
+            onController = { controller = it },
         )
 
         Column(
-            Modifier.fillMaxWidth().windowInsetsPadding(WindowInsets.statusBars).padding(horizontal = 14.dp, vertical = 6.dp),
+            Modifier.fillMaxWidth().windowInsetsPadding(WindowInsets.statusBars).padding(horizontal = 14.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(Spacing.s),
         ) {
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
-                Surface(
-                    shape = MaterialTheme.shapes.medium,
-                    color = MaterialTheme.colorScheme.surface,
-                    shadowElevation = 3.dp,
-                    modifier = Modifier.weight(1f).height(46.dp),
-                ) {
-                    Row(Modifier.padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-                        androidx.compose.foundation.Image(painterResource(R.drawable.cumbre_logo), contentDescription = null, modifier = Modifier.size(26.dp))
-                        Text("Cumbre", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(start = 10.dp))
-                    }
-                }
-                Surface(
-                    shape = MaterialTheme.shapes.medium,
-                    color = MaterialTheme.colorScheme.surface,
-                    shadowElevation = 3.dp,
-                    modifier = Modifier.height(46.dp).clickable { nav.navigate(Dest.OFFLINE_MAPS) },
-                ) {
-                    Row(Modifier.padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-                        val hasMaps = mapFiles.isNotEmpty() && mapAvailable
-                        Icon(
-                            if (hasMaps) Icons.Rounded.CloudOff else Icons.Rounded.DownloadForOffline,
-                            contentDescription = null,
-                            tint = if (hasMaps) CumbreTheme.extra.onSuccessContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(18.dp),
-                        )
-                        Text(
-                            if (hasMaps) "Offline" else "Sin mapa",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = if (hasMaps) CumbreTheme.extra.onSuccessContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(start = 6.dp),
-                        )
-                    }
-                }
+                val accuracy = fix?.accuracyMeters
+                MapCapsule(
+                    if (accuracy != null) Icons.Rounded.GpsFixed else Icons.Rounded.GpsNotFixed,
+                    when {
+                        !permission.hasAnyPermission || !showLocation -> "GPS apagado"
+                        accuracy == null -> "Buscando GPS…"
+                        else -> "GPS ${Formatters.accuracy(accuracy.toDouble())}"
+                    },
+                    iconTint = if (accuracy != null) CumbreTheme.extra.success else MaterialTheme.colorScheme.onSurfaceVariant,
+                    onClick = {
+                        permission.request(LocationPurpose.SHOW_POSITION) { showLocation = true }
+                    },
+                )
+                val hasMaps = mapFiles.isNotEmpty() && mapAvailable
+                MapCapsule(
+                    if (hasMaps) Icons.Rounded.CloudOff else Icons.Rounded.DownloadForOffline,
+                    if (hasMaps) "Mapa offline" else "Sin mapa",
+                    iconTint = if (hasMaps) CumbreTheme.extra.success else MaterialTheme.colorScheme.onSurfaceVariant,
+                    onClick = { nav.navigate(Dest.OFFLINE_MAPS) },
+                )
             }
             if (mapFiles.isEmpty()) {
                 MessageBanner(
@@ -183,69 +182,72 @@ fun HomeMapScreen(nav: NavController) {
             }
         }
 
-        Column(
-            Modifier.align(Alignment.CenterEnd).padding(end = 14.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            MapControlButton(Icons.Rounded.Layers, "Capas y estilo del mapa", onClick = { layersDialog = true })
-            MapControlButton(
-                Icons.Rounded.Explore,
-                if (courseUp) "Norte arriba" else "Orientar según el rumbo",
-                active = courseUp,
-                onClick = {
-                    courseUp = !courseUp
-                    messenger(
-                        if (courseUp) "El mapa gira según tu rumbo de marcha (se actualiza al caminar)." else "Norte arriba.",
-                    )
-                },
-            )
-            MapControlButton(
-                Icons.Rounded.MyLocation,
-                "Centrar en mi ubicación",
-                tint = CumbreColors.Naranja,
-                active = follow,
-                onClick = {
-                    permission.request(LocationPurpose.SHOW_POSITION) {
-                        showLocation = true
-                        follow = !follow || position == null
-                        if (position == null) messenger("Buscando señal GPS…")
-                    }
-                },
-            )
-        }
-
-        MapBottomPanel(Modifier.align(Alignment.BottomCenter)) {
-            if (tracking.isActive) {
-                ActiveTrackingCard(
-                    name = tracking.activityName,
-                    detail = "${Formatters.distance(tracking.stats.distanceMeters)} · ${Formatters.clock(tracking.elapsedMillis)}" +
-                        if (tracking.status == TrackingStatus.PAUSED) " · en pausa" else "",
-                    onClick = { nav.navigate(Dest.TRACKING) },
+        Column(Modifier.align(Alignment.BottomCenter).fillMaxWidth()) {
+            Column(
+                Modifier.align(Alignment.End).padding(end = 14.dp, bottom = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalAlignment = Alignment.End,
+            ) {
+                MapControlButton(Icons.Rounded.Layers, "Capas y estilo del mapa", onClick = { layersDialog = true })
+                MapControlButton(
+                    Icons.Rounded.Explore,
+                    if (courseUp) "Norte arriba" else "Orientar según el rumbo",
+                    active = courseUp,
+                    onClick = {
+                        courseUp = !courseUp
+                        messenger(
+                            if (courseUp) "El mapa gira según tu rumbo de marcha (se actualiza al caminar)." else "Norte arriba.",
+                        )
+                    },
                 )
-            } else {
-                recent?.let { r ->
-                    CumbreCard(onClick = { nav.navigate(Dest.routeDetail(r.id)) }, container = MaterialTheme.colorScheme.surfaceContainerLow) {
-                        Row(Modifier.padding(Spacing.m), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
-                            val pts = remember(r.thumbnail) { PolylineCodec.decode(r.thumbnail) }
-                            TrackThumbnail(pts, Modifier.size(54.dp).clip(RoundedCornerShape(10.dp)))
-                            Column(Modifier.weight(1f)) {
-                                Text("Continuar ruta reciente", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                MapZoomControls(controller)
+                MapControlButton(
+                    Icons.Rounded.MyLocation,
+                    "Centrar en mi ubicación",
+                    tint = CumbreColors.Naranja,
+                    active = follow,
+                    onClick = {
+                        permission.request(LocationPurpose.SHOW_POSITION) {
+                            showLocation = true
+                            follow = !follow || position == null
+                            if (position == null) messenger("Buscando señal GPS…")
+                        }
+                    },
+                )
+            }
+            MapBottomPanel {
+                if (tracking.isActive) {
+                    ActiveTrackingCard(
+                        name = tracking.activityName,
+                        detail = "${Formatters.distance(tracking.stats.distanceMeters)} · ${Formatters.clock(tracking.elapsedMillis)}" +
+                            if (tracking.status == TrackingStatus.PAUSED) " · en pausa" else "",
+                        onClick = { nav.navigate(Dest.TRACKING) },
+                    )
+                } else {
+                    val r = recent
+                    if (r != null) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
+                            Column(Modifier.weight(1f).clip(MaterialTheme.shapes.small).clickable { nav.navigate(Dest.routeDetail(r.id)) }) {
                                 Text(r.name, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                val here = fix
+                                val start = r.start
                                 Text(
-                                    Formatters.distance(r.distanceMeters) + (r.elevationGainMeters?.let { " · ↑ ${Formatters.elevation(it)}" } ?: ""),
+                                    if (here != null && start != null) {
+                                        "El inicio está a ${Formatters.distance(GeoMath.distanceMeters(here.latitude, here.longitude, start.latitude, start.longitude))} de vos"
+                                    } else {
+                                        Formatters.distance(r.distanceMeters) + (r.elevationGainMeters?.let { " · ↑ ${Formatters.elevation(it)}" } ?: "")
+                                    },
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1,
                                 )
                             }
-                            Icon(Icons.AutoMirrored.Rounded.ArrowForward, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                            AccentButton("Iniciar", onClick = { startRecording(r.id) }, icon = Icons.Rounded.Navigation)
                         }
+                    } else {
+                        PrimaryButton("Importar GPX", onClick = openPicker, icon = Icons.Rounded.UploadFile, modifier = Modifier.fillMaxWidth())
                     }
-                    Spacer(Modifier.height(Spacing.m))
                 }
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                PrimaryButton("Importar GPX", onClick = openPicker, icon = Icons.Rounded.UploadFile, modifier = Modifier.weight(1.25f))
-                SecondaryButton("Mis rutas", onClick = { nav.navigate(Dest.ROUTES) { launchSingleTop = true } }, icon = Icons.Rounded.Route, modifier = Modifier.weight(1f))
             }
         }
     }

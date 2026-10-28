@@ -118,18 +118,14 @@ fun RouteDetailScreen(nav: NavController, routeId: Long) {
         if (uri != null) scope.launch { messenger(if (vm.export(uri)) "GPX exportado." else "No se pudo exportar el archivo.") }
     }
 
+    val startRecording = com.cumbre.app.ui.platform.rememberRecordingStarter(nav)
+
     fun startNavigation() {
         if (tracking.isActive) {
             dialog = DetailDialog.BUSY
             return
         }
-        permission.request(LocationPurpose.NAVIGATE) {
-            scope.launch {
-                runCatching { container.trackingManager.start(routeId) }
-                    .onSuccess { nav.navigate(Dest.TRACKING) }
-                    .onFailure { messenger("No se pudo iniciar el recorrido: ${it.message}") }
-            }
-        }
+        startRecording(routeId)
     }
 
     val route = state.route

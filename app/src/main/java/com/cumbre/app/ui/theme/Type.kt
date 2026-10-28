@@ -40,6 +40,8 @@ val CumbreTypography = Typography(
 
 /** Estilos para cifras (estadísticas y panel de navegación). */
 object DataText {
+    /** Cifra protagonista de la navegación («Te falta 7,4 km»). */
+    val Display = TextStyle(fontFamily = Montserrat, fontWeight = FontWeight.ExtraBold, fontSize = 40.sp, lineHeight = 44.sp, letterSpacing = (-1).sp)
     val Hero = TextStyle(fontFamily = Inter, fontWeight = FontWeight.Bold, fontSize = 34.sp, lineHeight = 38.sp, letterSpacing = (-0.5).sp)
     val Large = TextStyle(fontFamily = Inter, fontWeight = FontWeight.Bold, fontSize = 24.sp, lineHeight = 28.sp)
     val Medium = TextStyle(fontFamily = Inter, fontWeight = FontWeight.Bold, fontSize = 17.sp, lineHeight = 22.sp)

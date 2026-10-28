@@ -23,6 +23,21 @@ object Formatters {
         else -> "${pattern("#,##0").format(meters / 1000)} km"
     }
 
+    /** Valor y unidad por separado, para mostrar la unidad más chica: ("15,0", "km") o ("850", "m"). */
+    fun distanceParts(meters: Double): Pair<String, String> = when {
+        meters < 1000 -> meters.roundToLong().toString() to "m"
+        meters < 100_000 -> pattern("#,##0.0").format(meters / 1000) to "km"
+        else -> pattern("#,##0").format(meters / 1000) to "km"
+    }
+
+    /** Duración compacta para datos: "6 h 16", "45 min". */
+    fun durationCompact(seconds: Long): String {
+        val totalMinutes = (seconds + 30) / 60
+        val h = totalMinutes / 60
+        val m = totalMinutes % 60
+        return if (h == 0L) "$m min" else "$h h %02d".format(m)
+    }
+
     /** Distancia en km con dos decimales para el panel de navegación: "7,82". */
     fun kilometersValue(meters: Double): String =
         if (meters < 10_000) pattern("0.00").format(meters / 1000) else pattern("#,##0.0").format(meters / 1000)

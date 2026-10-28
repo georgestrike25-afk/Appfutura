@@ -18,7 +18,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
@@ -27,7 +26,6 @@ import androidx.navigation.NavController
 import com.cumbre.app.data.db.ActivityEntity
 import com.cumbre.app.tracking.TrackingStatus
 import com.cumbre.app.ui.LocalAppContainer
-import com.cumbre.app.ui.LocalMessenger
 import com.cumbre.app.ui.components.AccentButton
 import com.cumbre.app.ui.components.CumbreCard
 import com.cumbre.app.ui.components.CumbreTopBar
@@ -37,13 +35,11 @@ import com.cumbre.app.ui.components.SectionTitle
 import com.cumbre.app.ui.components.StatGrid
 import com.cumbre.app.ui.components.StatValue
 import com.cumbre.app.ui.navigation.Dest
-import com.cumbre.app.ui.platform.LocationPurpose
-import com.cumbre.app.ui.platform.rememberLocationPermission
+import com.cumbre.app.ui.platform.rememberRecordingStarter
 import com.cumbre.app.ui.screens.home.ActiveTrackingCard
 import com.cumbre.app.ui.theme.DataText
 import com.cumbre.app.ui.theme.Spacing
 import com.cumbre.core.format.Formatters
-import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -53,11 +49,9 @@ private val dateFormat = SimpleDateFormat("EEEE d 'de' MMMM · HH:mm", Locale.fo
 @Composable
 fun ActivityListScreen(nav: NavController) {
     val container = LocalAppContainer.current
-    val messenger = LocalMessenger.current
-    val scope = rememberCoroutineScope()
     val tracking by container.trackingManager.state.collectAsStateWithLifecycle()
     val history by remember { container.activities.observeFinished() }.collectAsStateWithLifecycle(initialValue = null)
-    val permission = rememberLocationPermission(container.settings)
+    val startRecording = rememberRecordingStarter(nav)
 
     Column(Modifier.fillMaxSize()) {
         CumbreTopBar(title = "Actividad")
@@ -93,13 +87,7 @@ fun ActivityListScreen(nav: NavController) {
                                 icon = Icons.AutoMirrored.Rounded.DirectionsWalk,
                                 modifier = Modifier.fillMaxWidth(),
                                 onClick = {
-                                    permission.request(LocationPurpose.NAVIGATE) {
-                                        scope.launch {
-                                            runCatching { container.trackingManager.start(null) }
-                                                .onSuccess { nav.navigate(Dest.TRACKING) }
-                                                .onFailure { messenger("No se pudo iniciar: ${it.message}") }
-                                        }
-                                    }
+                                    startRecording(null)
                                 },
                             )
                         }

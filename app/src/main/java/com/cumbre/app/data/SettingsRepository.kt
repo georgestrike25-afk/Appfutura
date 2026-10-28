@@ -29,6 +29,8 @@ data class Settings(
     val notificationPermissionRequested: Boolean = false,
     /** Enlace de Wikiloc recibido que se asociará a la próxima importación. */
     val pendingWikilocUrl: String? = null,
+    /** Ya se mostró la guía de batería antes de la primera grabación. */
+    val batteryGuideSeen: Boolean = false,
 )
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "cumbre_settings")
@@ -45,6 +47,7 @@ class SettingsRepository(private val context: Context) {
         val locationAsked = booleanPreferencesKey("location_asked")
         val notificationsAsked = booleanPreferencesKey("notifications_asked")
         val pendingWikiloc = stringPreferencesKey("pending_wikiloc_url")
+        val batteryGuide = booleanPreferencesKey("battery_guide_seen")
     }
 
     val settings: Flow<Settings> = context.dataStore.data.map { p ->
@@ -59,6 +62,7 @@ class SettingsRepository(private val context: Context) {
             locationPermissionRequested = p[Keys.locationAsked] ?: false,
             notificationPermissionRequested = p[Keys.notificationsAsked] ?: false,
             pendingWikilocUrl = p[Keys.pendingWikiloc],
+            batteryGuideSeen = p[Keys.batteryGuide] ?: false,
         )
     }
 
@@ -72,6 +76,7 @@ class SettingsRepository(private val context: Context) {
     suspend fun setMapStyle(style: MapStyle) = context.dataStore.edit { it[Keys.mapStyle] = style.name }
     suspend fun setShowRelief(enabled: Boolean) = context.dataStore.edit { it[Keys.relief] = enabled }
     suspend fun setLocationPermissionRequested() = context.dataStore.edit { it[Keys.locationAsked] = true }
+    suspend fun setBatteryGuideSeen() = context.dataStore.edit { it[Keys.batteryGuide] = true }
     suspend fun setNotificationPermissionRequested() = context.dataStore.edit { it[Keys.notificationsAsked] = true }
     suspend fun setPendingWikilocUrl(url: String?) = context.dataStore.edit {
         if (url == null) it.remove(Keys.pendingWikiloc) else it[Keys.pendingWikiloc] = url

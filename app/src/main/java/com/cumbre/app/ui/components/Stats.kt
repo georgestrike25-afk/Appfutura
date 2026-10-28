@@ -28,12 +28,23 @@ import com.cumbre.app.ui.theme.DataText
 import com.cumbre.app.ui.theme.Spacing
 import com.cumbre.core.maps.CoverageLevel
 
-data class StatValue(val value: String, val label: String)
+/** Dato a mostrar. Si [unit] no es nulo, se dibuja más chico junto al valor. */
+data class StatValue(val value: String, val label: String, val unit: String? = null)
 
 @Composable
 fun StatItem(stat: StatValue, modifier: Modifier = Modifier, valueColor: Color = MaterialTheme.colorScheme.onSurface) {
     Column(modifier) {
-        Text(stat.value, style = DataText.Medium, color = valueColor, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Row(verticalAlignment = Alignment.Bottom) {
+            Text(stat.value, style = DataText.Medium, color = valueColor, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            stat.unit?.let {
+                Text(
+                    " $it",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 2.dp),
+                )
+            }
+        }
         Text(stat.label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
     }
 }

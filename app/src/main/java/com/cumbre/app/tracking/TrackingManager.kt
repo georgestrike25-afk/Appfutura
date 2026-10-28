@@ -170,7 +170,8 @@ class TrackingManager(
         filter.breakSegment()
         persist(a.copy(state = StoredActivityState.PAUSED.name), now)
         _state.update { it.copy(status = TrackingStatus.PAUSED, elapsedMillis = clock.elapsed(now)) }
-        stopService()
+        // El servicio sigue vivo en pausa (sin GPS) para que Android no cierre la app: así se
+        // puede reanudar desde la notificación y la actividad no se pierde.
     }
 
     suspend fun resume() = mutex.withLock {
@@ -296,10 +297,13 @@ class TrackingManager(
 
     /** Llamado por el servicio cuando Android lo reinicia tras cerrar el proceso. */
     suspend fun restoreAfterServiceRestart(): Boolean {
-        if (_state.value.status == TrackingStatus.RECORDING) return true
+        if (_state.value.isActive) return true
         val open = withContext(Dispatchers.IO) { activityDao.findOpen() } ?: return false
-        if (open.state != StoredActivityState.RECORDING.name) return false
-        return restore(open.id, continueRecording = true)
+        return when (open.state) {
+            StoredActivityState.RECORDING.name -> restore(open.id, continueRecording = true)
+            StoredActivityState.PAUSED.name -> restore(open.id, continueRecording = false)
+            else -> false
+        }
     }
 
     // ---------- Ubicación ----------

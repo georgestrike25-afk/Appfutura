@@ -2,13 +2,15 @@ package com.cumbre.app.ui.navigation
 
 import android.net.Uri
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.DirectionsWalk
+import androidx.compose.material.icons.rounded.Hiking
+import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Map
 import androidx.compose.material.icons.rounded.MoreHoriz
 import androidx.compose.material.icons.rounded.Route
 import androidx.compose.ui.graphics.vector.ImageVector
 
 object Dest {
+    const val HOME = "home"
     const val MAP = "map"
     const val ROUTES = "routes"
     const val ACTIVITY = "activity"
@@ -36,9 +38,10 @@ object Dest {
 data class TopLevel(val route: String, val label: String, val icon: ImageVector)
 
 val TopLevels = listOf(
+    TopLevel(Dest.HOME, "Inicio", Icons.Rounded.Home),
     TopLevel(Dest.MAP, "Mapa", Icons.Rounded.Map),
     TopLevel(Dest.ROUTES, "Rutas", Icons.Rounded.Route),
-    TopLevel(Dest.ACTIVITY, "Actividad", Icons.AutoMirrored.Rounded.DirectionsWalk),
+    TopLevel(Dest.ACTIVITY, "Actividad", Icons.Rounded.Hiking),
     TopLevel(Dest.MORE, "Más", Icons.Rounded.MoreHoriz),
 )
 

@@ -38,6 +38,8 @@ class AppManifestPolicyTest {
                 "android.permission.FOREGROUND_SERVICE_LOCATION",
                 "android.permission.POST_NOTIFICATIONS",
                 "android.permission.VIBRATE",
+                "android.permission.WAKE_LOCK",
+                "android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS",
             ),
             permissions(),
         )
@@ -50,6 +52,8 @@ class AppManifestPolicyTest {
         val s = (0 until services.length).map { services.item(it) as org.w3c.dom.Element }.single { it.getAttributeNS(androidNs, "name").endsWith("TrackingService") }
         assertEquals("location", s.getAttributeNS(androidNs, "foregroundServiceType"))
         assertEquals("false", s.getAttributeNS(androidNs, "exported"))
+        // Quitar la app de recientes no debe cortar la grabación.
+        assertEquals("false", s.getAttributeNS(androidNs, "stopWithTask"))
     }
 
     @Test

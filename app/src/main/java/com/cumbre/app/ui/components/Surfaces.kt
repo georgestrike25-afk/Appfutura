@@ -142,9 +142,9 @@ fun MapControlButton(
     val extra = CumbreTheme.extra
     Box(
         modifier
-            .size(48.dp)
-            .shadow(4.dp, MaterialTheme.shapes.medium)
-            .clip(MaterialTheme.shapes.medium)
+            .size(52.dp)
+            .shadow(6.dp, RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(16.dp))
             .background(if (active) MaterialTheme.colorScheme.primaryContainer else extra.mapControl)
             .clickable(role = Role.Button, onClickLabel = contentDescription, onClick = onClick),
         contentAlignment = Alignment.Center,

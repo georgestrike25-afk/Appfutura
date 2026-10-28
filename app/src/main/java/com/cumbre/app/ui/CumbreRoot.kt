@@ -52,6 +52,7 @@ import com.cumbre.app.ui.screens.activity.ActivityListScreen
 import com.cumbre.app.ui.screens.detail.RouteDetailScreen
 import com.cumbre.app.ui.screens.detail.RouteMapScreen
 import com.cumbre.app.ui.screens.home.HomeMapScreen
+import com.cumbre.app.ui.screens.home.HomeScreen
 import com.cumbre.app.ui.screens.importer.ImportScreen
 import com.cumbre.app.ui.screens.more.AboutScreen
 import com.cumbre.app.ui.screens.more.MoreScreen
@@ -166,7 +167,7 @@ private fun CumbreBottomBar(nav: NavHostController, currentRoute: String?) {
                     }
                 },
                 icon = { Icon(item.icon, contentDescription = null) },
-                label = { Text(item.label, style = MaterialTheme.typography.labelMedium) },
+                label = { Text(item.label, style = MaterialTheme.typography.labelMedium, maxLines = 1, softWrap = false) },
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
                     selectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -181,7 +182,8 @@ private fun CumbreBottomBar(nav: NavHostController, currentRoute: String?) {
 
 @Composable
 private fun CumbreNavHost(nav: NavHostController, modifier: Modifier) {
-    NavHost(navController = nav, startDestination = Dest.MAP, modifier = modifier) {
+    NavHost(navController = nav, startDestination = Dest.HOME, modifier = modifier) {
+        composable(Dest.HOME) { HomeScreen(nav) }
         composable(Dest.MAP) { HomeMapScreen(nav) }
         composable(Dest.ROUTES) { RoutesScreen(nav) }
         composable(Dest.ACTIVITY) { ActivityListScreen(nav) }

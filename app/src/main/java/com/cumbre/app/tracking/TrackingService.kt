@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
+import android.os.PowerManager
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
@@ -21,21 +22,34 @@ import com.cumbre.app.R
 import com.cumbre.core.format.Formatters
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 /**
  * Servicio en primer plano de tipo «location»: mantiene el GPS activo mientras se graba una
- * actividad, aunque la pantalla esté apagada o la app en segundo plano. Solo corre mientras
- * hay una actividad grabando; al pausar o finalizar se detiene y libera el GPS.
+ * actividad (libre o siguiendo una ruta), aunque la pantalla esté apagada, la app en segundo
+ * plano o se la quite de recientes. Corre desde que se inicia la actividad hasta que el usuario
+ * la finaliza o la descarta; en pausa sigue vivo pero sin GPS.
+ *
+ * Blindaje: wake lock parcial mientras graba (algunos fabricantes duermen la CPU con la
+ * pantalla apagada aunque haya un servicio en primer plano) y un vigilante que vuelve a
+ * registrar el GPS si deja de llegar señal.
  */
 class TrackingService : LifecycleService() {
     private val container by lazy { (application as CumbreApp).container }
     private var locationJob: Job? = null
     private var observersStarted = false
+    private var wakeLock: PowerManager.WakeLock? = null
+    private var lastSampleAt = 0L
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
+        when (intent?.action) {
+            ACTION_PAUSE -> lifecycleScope.launch { container.trackingManager.pause() }
+            ACTION_RESUME -> lifecycleScope.launch { container.trackingManager.resume() }
+        }
         if (!container.locationSource.hasAnyPermission()) {
             stopSelf()
             return START_NOT_STICKY
@@ -65,26 +79,44 @@ class TrackingService : LifecycleService() {
         if (observersStarted) return
         observersStarted = true
         val manager = container.trackingManager
-        locationJob = lifecycleScope.launch {
-            container.locationSource.updates().collect { manager.onLocation(it) }
+        lifecycleScope.launch {
+            // El GPS solo se usa mientras se graba; en pausa se libera para ahorrar batería.
+            manager.state.map { it.status == TrackingStatus.RECORDING }.distinctUntilChanged().collect { recording ->
+                if (recording) {
+                    acquireWakeLock()
+                    startLocation()
+                } else {
+                    locationJob?.cancel()
+                    locationJob = null
+                    releaseWakeLock()
+                }
+            }
         }
         lifecycleScope.launch {
-            // Se detiene cuando la actividad deja de grabar (pausa, fin o descarte).
-            manager.state.first { it.status == TrackingStatus.RECORDING }
-            manager.state.first { it.status != TrackingStatus.RECORDING }
+            // Se detiene solo cuando la actividad termina (finalizada o descartada).
+            manager.state.first { it.isActive }
+            manager.state.first { !it.isActive }
             stopSelf()
         }
         lifecycleScope.launch {
             while (true) {
                 val s = manager.state.value
-                if (s.status == TrackingStatus.RECORDING) {
+                if (s.isActive) {
+                    val paused = s.status == TrackingStatus.PAUSED
                     val text = buildString {
+                        if (paused) append("En pausa · ")
                         append(Formatters.distance(s.stats.distanceMeters))
                         append(" · ")
                         append(Formatters.clock(s.elapsedMillis))
                         s.follow?.let { append(" · quedan ${Formatters.distance(it.remainingMeters)}") }
                     }
-                    notificationManager().notify(NOTIFICATION_ID, buildNotification(text))
+                    runCatching { notificationManager().notify(NOTIFICATION_ID, buildNotification(text, paused)) }
+                }
+                if (s.status == TrackingStatus.RECORDING && lastSampleAt > 0 &&
+                    System.currentTimeMillis() - lastSampleAt > GPS_WATCHDOG_MILLIS
+                ) {
+                    // Algunos teléfonos cortan las actualizaciones sin avisar: se vuelven a pedir.
+                    startLocation()
                 }
                 delay(5_000)
             }
@@ -92,6 +124,39 @@ class TrackingService : LifecycleService() {
         lifecycleScope.launch {
             manager.offRouteEvents.collect { event -> alertOffRoute(event.distanceMeters) }
         }
+    }
+
+    private fun startLocation() {
+        val manager = container.trackingManager
+        locationJob?.cancel()
+        lastSampleAt = System.currentTimeMillis()
+        locationJob = lifecycleScope.launch {
+            container.locationSource.updates().collect {
+                lastSampleAt = System.currentTimeMillis()
+                manager.onLocation(it)
+            }
+        }
+    }
+
+    private fun acquireWakeLock() {
+        if (wakeLock?.isHeld == true) return
+        val pm = getSystemService(PowerManager::class.java) ?: return
+        wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "Cumbre:grabacion").apply {
+            setReferenceCounted(false)
+            // Límite de seguridad: se renueva al reanudar; una actividad de más de 12 h sigue
+            // grabando gracias al servicio en primer plano aunque el wake lock expire.
+            runCatching { acquire(WAKE_LOCK_MAX_MILLIS) }
+        }
+    }
+
+    private fun releaseWakeLock() {
+        wakeLock?.let { if (it.isHeld) runCatching { it.release() } }
+        wakeLock = null
+    }
+
+    /** Quitar la app de recientes no detiene la grabación: solo el usuario la finaliza. */
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        super.onTaskRemoved(rootIntent)
     }
 
     private fun alertOffRoute(distance: Double) {
@@ -118,8 +183,13 @@ class TrackingService : LifecycleService() {
         runCatching { vibrator?.vibrate(VibrationEffect.createWaveform(longArrayOf(0, 400, 200, 400), -1)) }
     }
 
-    private fun buildNotification(text: String): Notification =
-        NotificationCompat.Builder(this, CHANNEL_TRACKING)
+    private fun buildNotification(text: String, paused: Boolean = false): Notification {
+        val toggle = if (paused) {
+            NotificationCompat.Action(0, "Reanudar", serviceIntent(ACTION_RESUME, 1))
+        } else {
+            NotificationCompat.Action(0, "Pausar", serviceIntent(ACTION_PAUSE, 2))
+        }
+        return NotificationCompat.Builder(this, CHANNEL_TRACKING)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(container.trackingManager.state.value.activityName.ifBlank { "Recorrido en curso" })
             .setContentText(text)
@@ -129,7 +199,17 @@ class TrackingService : LifecycleService() {
             .setCategory(NotificationCompat.CATEGORY_WORKOUT)
             .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
             .setContentIntent(openAppIntent())
+            .addAction(toggle)
             .build()
+    }
+
+    private fun serviceIntent(action: String, code: Int): PendingIntent =
+        PendingIntent.getService(
+            this,
+            code,
+            Intent(this, TrackingService::class.java).setAction(action),
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+        )
 
     private fun openAppIntent(): PendingIntent {
         val intent = Intent(this, MainActivity::class.java)
@@ -142,6 +222,7 @@ class TrackingService : LifecycleService() {
 
     override fun onDestroy() {
         locationJob?.cancel()
+        releaseWakeLock()
         super.onDestroy()
     }
 
@@ -150,6 +231,10 @@ class TrackingService : LifecycleService() {
         const val CHANNEL_ALERTS = "alerts"
         private const val NOTIFICATION_ID = 1001
         private const val ALERT_ID = 1002
+        const val ACTION_PAUSE = "com.cumbre.app.action.PAUSE"
+        const val ACTION_RESUME = "com.cumbre.app.action.RESUME"
+        private const val GPS_WATCHDOG_MILLIS = 90_000L
+        private const val WAKE_LOCK_MAX_MILLIS = 12 * 60 * 60 * 1000L
 
         fun createChannels(context: Context) {
             val nm = context.getSystemService(NotificationManager::class.java) ?: return
