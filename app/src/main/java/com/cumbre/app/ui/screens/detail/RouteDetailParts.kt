@@ -21,16 +21,24 @@ import com.cumbre.core.analysis.IssueSeverity
 import com.cumbre.core.analysis.IssueText
 import com.cumbre.core.analysis.QualityIssue
 import com.cumbre.core.analysis.RouteStats
+import com.cumbre.core.analysis.DifficultyEstimator
+import com.cumbre.core.analysis.ProfileFeatures
+import com.cumbre.core.analysis.ProfilePoint
 import com.cumbre.core.format.Formatters
 
 /** Estadísticas visibles de una ruta. Los datos que no se pueden calcular se muestran como «—». */
-fun routeStats(s: RouteStats): List<StatValue> = buildList {
-    add(StatValue(Formatters.distance(s.distanceMeters), "Distancia"))
-    add(StatValue(s.elevationGainMeters?.let { "↑ ${Formatters.elevation(it)}" } ?: "—", "Desnivel +"))
-    add(StatValue(s.elevationLossMeters?.let { "↓ ${Formatters.elevation(it)}" } ?: "—", "Desnivel −"))
-    add(StatValue(s.estimatedDurationSeconds?.let { Formatters.duration(it) } ?: "—", "Duración est."))
-    add(StatValue(s.minElevationMeters?.let { Formatters.elevation(it) } ?: "—", "Altitud mín."))
-    add(StatValue(s.maxElevationMeters?.let { Formatters.elevation(it) } ?: "—", "Altitud máx."))
+fun routeStats(s: RouteStats, profile: List<ProfilePoint> = emptyList()): List<StatValue> = buildList {
+    fun dash(label: String) = StatValue("—", label)
+    Formatters.distanceParts(s.distanceMeters).let { (v, u) -> add(StatValue(v, "Distancia", u)) }
+    add(s.elevationGainMeters?.let { StatValue("↑ ${Formatters.elevationValue(it)}", "Desnivel +", "m") } ?: dash("Desnivel +"))
+    add(s.estimatedDurationSeconds?.let { StatValue(Formatters.durationCompact(it), "Duración est.") } ?: dash("Duración est."))
+    add(s.maxElevationMeters?.let { StatValue(Formatters.elevationValue(it), "Altitud máx.", "m") } ?: dash("Altitud máx."))
+    ProfileFeatures.highest(profile)?.let { top ->
+        Formatters.distanceParts(top.distanceMeters).let { (v, u) -> add(StatValue(v, "Cumbre en", u)) }
+    }
+    add(StatValue(DifficultyEstimator.estimate(s.distanceMeters, s.elevationGainMeters)?.label ?: "—", "Dificultad est."))
+    add(s.elevationLossMeters?.let { StatValue("↓ ${Formatters.elevationValue(it)}", "Desnivel −", "m") } ?: dash("Desnivel −"))
+    add(s.minElevationMeters?.let { StatValue(Formatters.elevationValue(it), "Altitud mín.", "m") } ?: dash("Altitud mín."))
     add(StatValue(Formatters.count(s.pointCount), "Puntos"))
     add(StatValue(s.segmentCount.toString(), if (s.segmentCount == 1) "Tramo" else "Tramos"))
     s.recordedDurationSeconds?.let { add(StatValue(Formatters.duration(it), "Tiempo registrado")) }

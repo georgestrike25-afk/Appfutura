@@ -32,6 +32,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -59,6 +60,8 @@ import com.cumbre.app.ui.navigation.Dest
 import com.cumbre.app.ui.platform.shareFile
 import com.cumbre.app.ui.platform.rememberMapLayers
 import com.cumbre.app.ui.theme.CumbreTheme
+import com.cumbre.app.ui.components.StatusPill
+import com.cumbre.app.ui.components.TrackingPillState
 import com.cumbre.app.ui.theme.Spacing
 import com.cumbre.core.format.Formatters
 import kotlinx.coroutines.launch
@@ -103,17 +106,21 @@ fun ActivityDetailScreen(nav: NavController, activityId: Long) {
                 val track = state.track
                 var scrub by remember { mutableStateOf<Double?>(null) }
                 val markers = rememberProfileMarkers(track?.lines ?: emptyList(), track?.analysis?.profile ?: emptyList(), scrub)
-                CumbreMap(
-                    modifier = Modifier.fillMaxWidth().height(260.dp),
-                    layers = layers,
-                    routeLines = track?.lines ?: emptyList(),
-                    fitBounds = track?.bounds,
-                    fitKey = track?.bounds,
-                    cursor = markers.cursor,
-                    summit = markers.summit,
-                )
+                androidx.compose.foundation.layout.Box(Modifier.fillMaxWidth().height(260.dp)) {
+                    CumbreMap(
+                        modifier = Modifier.fillMaxSize(),
+                        layers = layers,
+                        routeLines = track?.lines ?: emptyList(),
+                        fitBounds = track?.bounds,
+                        fitKey = track?.bounds,
+                        cursor = markers.cursor,
+                        summit = markers.summit,
+                    )
+                    StatusPill(TrackingPillState.FINISHED, Modifier.align(Alignment.TopStart).padding(14.dp))
+                }
                 Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
                     Column(Modifier.padding(horizontal = Spacing.l, vertical = Spacing.m)) {
+                        Text(a.name, style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onBackground)
                         Text(
                             SimpleDateFormat("EEEE d 'de' MMMM 'de' yyyy, HH:mm", Locale.forLanguageTag("es-AR")).format(Date(a.startedAt))
                                 .replaceFirstChar { it.titlecase() },
@@ -126,14 +133,14 @@ fun ActivityDetailScreen(nav: NavController, activityId: Long) {
                         val stats = track?.analysis?.stats
                         StatGrid(
                             listOf(
-                                StatValue(Formatters.distance(a.distanceMeters), "Distancia"),
+                                Formatters.distanceParts(a.distanceMeters).let { (v, u) -> StatValue(v, "Distancia", u) },
                                 StatValue(Formatters.clock(a.accumulatedMillis), "Tiempo activo"),
                                 StatValue(Formatters.clock(a.movingMillis), "En movimiento"),
-                                StatValue(if (a.accumulatedMillis > 0) Formatters.speedKmh(a.distanceMeters / (a.accumulatedMillis / 1000.0)) else "—", "Vel. media"),
-                                StatValue("↑ ${Formatters.elevation(a.elevationGainMeters)}", "Desnivel + est."),
-                                StatValue("↓ ${Formatters.elevation(a.elevationLossMeters)}", "Desnivel − est."),
-                                StatValue(stats?.minElevationMeters?.let { Formatters.elevation(it) } ?: "—", "Altitud mín."),
-                                StatValue(stats?.maxElevationMeters?.let { Formatters.elevation(it) } ?: "—", "Altitud máx."),
+                                if (a.accumulatedMillis > 0) StatValue(Formatters.speedKmhValue(a.distanceMeters / (a.accumulatedMillis / 1000.0)), "Vel. media", "km/h") else StatValue("—", "Vel. media"),
+                                StatValue("↑ ${Formatters.elevationValue(a.elevationGainMeters)}", "Desnivel + est.", "m"),
+                                StatValue("↓ ${Formatters.elevationValue(a.elevationLossMeters)}", "Desnivel − est.", "m"),
+                                stats?.minElevationMeters?.let { StatValue(Formatters.elevationValue(it), "Altitud mín.", "m") } ?: StatValue("—", "Altitud mín."),
+                                stats?.maxElevationMeters?.let { StatValue(Formatters.elevationValue(it), "Altitud máx.", "m") } ?: StatValue("—", "Altitud máx."),
                                 StatValue(Formatters.count(a.pointCount), "Puntos GPS"),
                             ),
                             Modifier.padding(top = Spacing.l),

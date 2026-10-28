@@ -12,7 +12,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.BatteryChargingFull
+import androidx.compose.material.icons.rounded.BrightnessAuto
+import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.Landscape
+import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material.icons.rounded.LightMode
 import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.material.icons.rounded.Notifications
@@ -21,7 +27,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -36,6 +48,13 @@ import com.cumbre.app.ui.components.CumbreCard
 import com.cumbre.app.ui.components.CumbreTopBar
 import com.cumbre.app.ui.components.ListRow
 import com.cumbre.app.ui.components.SectionTitle
+import com.cumbre.app.ui.components.SegmentOption
+import com.cumbre.app.ui.components.SegmentedChoice
+import com.cumbre.app.ui.components.Tag
+import com.cumbre.app.ui.components.TagStyle
+import com.cumbre.app.ui.platform.isIgnoringBatteryOptimizations
+import com.cumbre.app.ui.platform.oemBatteryTip
+import com.cumbre.app.ui.platform.requestIgnoreBatteryOptimizations
 import com.cumbre.app.ui.platform.openAppSettings
 import com.cumbre.app.ui.theme.Spacing
 import kotlinx.coroutines.launch
@@ -46,17 +65,23 @@ fun SettingsScreen(nav: NavController) {
     val settings = LocalSettings.current
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    fun granted(p: String) = context.checkSelfPermission(p) == PackageManager.PERMISSION_GRANTED
+    // Se vuelve a leer el estado de permisos y batería al regresar de los ajustes del sistema.
+    var resumes by remember { mutableIntStateOf(0) }
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { resumes++ }
+    fun granted(p: String) = resumes >= 0 && context.checkSelfPermission(p) == PackageManager.PERMISSION_GRANTED
 
     Column(Modifier.fillMaxSize()) {
         CumbreTopBar(title = "Ajustes", onBack = { nav.popBackStack() })
         Column(Modifier.verticalScroll(rememberScrollState()).padding(Spacing.l)) {
             SectionTitle("Apariencia", Modifier.padding(top = 0.dp))
-            ChoiceChips(
-                listOf(ChipOption(ThemeMode.SYSTEM, "Según el sistema"), ChipOption(ThemeMode.LIGHT, "Claro"), ChipOption(ThemeMode.DARK, "Oscuro")),
+            SegmentedChoice(
+                listOf(
+                    SegmentOption(ThemeMode.SYSTEM, "Sistema", Icons.Rounded.BrightnessAuto),
+                    SegmentOption(ThemeMode.LIGHT, "Claro", Icons.Rounded.LightMode),
+                    SegmentOption(ThemeMode.DARK, "Oscuro", Icons.Rounded.DarkMode),
+                ),
                 settings.themeMode,
                 { scope.launch { container.settings.setThemeMode(it) } },
-                contentPadding = PaddingValues(),
             )
             SectionTitle("Estilo del mapa")
             ChoiceChips(
@@ -100,6 +125,37 @@ fun SettingsScreen(nav: NavController) {
                     trailing = { Switch(settings.keepScreenOn, { v -> scope.launch { container.settings.setKeepScreenOn(v) } }) },
                 )
             }
+            SectionTitle("Grabación con la pantalla apagada")
+            CumbreCard {
+                val unrestricted = remember(resumes) { context.isIgnoringBatteryOptimizations() }
+                ListRow(
+                    "Batería sin restricciones",
+                    subtitle = if (unrestricted) {
+                        "Activado: Android no cerrará Cumbre mientras grabás"
+                    } else {
+                        "Recomendado: el ahorro de batería puede cortar la grabación"
+                    },
+                    icon = Icons.Rounded.BatteryChargingFull,
+                    onClick = { context.requestIgnoreBatteryOptimizations() },
+                    trailing = { StatusTag(unrestricted) },
+                )
+                val tip = remember { oemBatteryTip() }
+                if (tip != null) {
+                    Text(
+                        "En ${tip.brand}: ${tip.steps}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(start = Spacing.l, end = Spacing.l, bottom = Spacing.m),
+                    )
+                    ListRow("Abrir ajustes de la app", icon = Icons.Rounded.Settings, onClick = { context.openAppSettings() })
+                }
+            }
+            Text(
+                "La grabación sigue aunque apagues la pantalla, cambies de app o quites Cumbre de recientes, hasta que toques «Finalizar». Podés pausar y reanudar desde la notificación.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = Spacing.s),
+            )
             SectionTitle("Permisos")
             CumbreCard {
                 val fine = granted(Manifest.permission.ACCESS_FINE_LOCATION)
@@ -113,6 +169,7 @@ fun SettingsScreen(nav: NavController) {
                     },
                     icon = Icons.Rounded.LocationOn,
                     onClick = { context.openAppSettings() },
+                    trailing = { StatusTag(fine) },
                 )
                 val notif = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || granted(Manifest.permission.POST_NOTIFICATIONS)
                 ListRow(
@@ -120,6 +177,7 @@ fun SettingsScreen(nav: NavController) {
                     subtitle = if (notif) "Activadas (recorrido en curso y avisos de desvío)" else "Desactivadas: no verás el recorrido en curso ni los avisos",
                     icon = Icons.Rounded.Notifications,
                     onClick = { context.openAppSettings() },
+                    trailing = { StatusTag(notif) },
                 )
             }
             Text(
@@ -130,4 +188,9 @@ fun SettingsScreen(nav: NavController) {
             )
         }
     }
+}
+
+@Composable
+private fun StatusTag(ok: Boolean) {
+    Tag(if (ok) "Activo" else "Revisar", icon = if (ok) Icons.Rounded.CheckCircle else Icons.Rounded.Warning, style = if (ok) TagStyle.POSITIVE else TagStyle.WARNING)
 }

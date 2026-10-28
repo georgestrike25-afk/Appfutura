@@ -94,6 +94,7 @@ import kotlinx.coroutines.launch
 
 private enum class DetailDialog { RENAME, LINK, DELETE, NO_MAP, BUSY }
 
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 fun RouteDetailScreen(nav: NavController, routeId: Long) {
     val container = LocalAppContainer.current
@@ -198,8 +199,14 @@ fun RouteDetailScreen(nav: NavController, routeId: Long) {
                 }
             Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
                 Column(Modifier.padding(horizontal = Spacing.l, vertical = Spacing.m)) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    androidx.compose.foundation.layout.FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
                         OfflineBadge(state.coverage?.level, state.coveringMaps.firstOrNull()?.displayName)
+                        com.cumbre.app.ui.components.DifficultyTag(
+                            com.cumbre.core.analysis.DifficultyEstimator.estimate(route.distanceMeters, route.elevationGainMeters),
+                        )
                         Tag(sourceLabel(route.source))
                     }
                     Spacer(Modifier.height(6.dp))
@@ -212,7 +219,7 @@ fun RouteDetailScreen(nav: NavController, routeId: Long) {
                         MessageBanner("No se encontró el archivo GPX de esta ruta en el teléfono. Podés eliminarla e importarla de nuevo.", MessageKind.ERROR)
                     }
                     Spacer(Modifier.height(Spacing.l))
-                    state.stats?.let { StatGrid(routeStats(it)) }
+                    state.stats?.let { StatGrid(routeStats(it, state.profile)) }
                     if (state.profile.isNotEmpty()) {
                         SectionTitle("Perfil de elevación")
                         ElevationProfileChart(
@@ -271,6 +278,8 @@ fun RouteDetailScreen(nav: NavController, routeId: Long) {
                     },
                     icon = Icons.Rounded.Navigation,
                     modifier = Modifier.weight(1f),
+                    container = CumbreColors.Naranja,
+                    content = CumbreColors.GrisOscuro,
                 )
             }
         }

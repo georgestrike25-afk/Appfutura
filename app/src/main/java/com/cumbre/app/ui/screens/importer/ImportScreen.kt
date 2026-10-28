@@ -147,7 +147,7 @@ fun ImportScreen(nav: NavController, uri: Uri?) {
                             modifier = Modifier.padding(top = 6.dp),
                         )
                         Spacer(Modifier.height(Spacing.l))
-                        com.cumbre.app.ui.components.StatGrid(routeStats(p.analysis.stats))
+                        com.cumbre.app.ui.components.StatGrid(routeStats(p.analysis.stats, p.analysis.profile))
                         if (p.analysis.profile.isNotEmpty()) {
                             SectionTitle("Perfil de elevación")
                             ElevationProfileChart(

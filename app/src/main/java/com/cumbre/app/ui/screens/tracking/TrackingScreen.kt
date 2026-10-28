@@ -52,6 +52,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.cumbre.app.map.MapWaypoint
@@ -70,6 +71,10 @@ import com.cumbre.app.ui.components.MessageBanner
 import com.cumbre.app.ui.components.MessageKind
 import com.cumbre.app.ui.components.PrimaryButton
 import com.cumbre.app.ui.components.SecondaryButton
+import com.cumbre.app.ui.components.RidgeSilhouette
+import com.cumbre.app.ui.components.RidgeStyle
+import com.cumbre.app.ui.components.StatusPill
+import com.cumbre.app.ui.components.TrackingPillState
 import com.cumbre.app.ui.navigation.Dest
 import com.cumbre.app.ui.platform.rememberLiveLocation
 import com.cumbre.app.ui.platform.toMapPosition
@@ -151,9 +156,10 @@ fun TrackingScreen(nav: NavController) {
         ) {
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.s), verticalAlignment = Alignment.CenterVertically) {
                 MapControlButton(Icons.AutoMirrored.Rounded.ArrowBack, "Volver (el recorrido sigue)", onClick = { nav.popBackStack() })
-                GpsChip(state)
+                StatusPill(if (state.status == TrackingStatus.PAUSED) TrackingPillState.PAUSED else TrackingPillState.RECORDING)
                 Spacer(Modifier.weight(1f))
-                if (mapFiles.isNotEmpty()) StatusChip(Icons.Rounded.CloudOff, "Mapa offline")
+                if (state.status == TrackingStatus.RECORDING) GpsChip(state)
+                else if (mapFiles.isNotEmpty()) StatusChip(Icons.Rounded.CloudOff, "Offline")
             }
             val follow0 = state.follow
             if (follow0?.offRoute == true) {
@@ -177,31 +183,36 @@ fun TrackingScreen(nav: NavController) {
             }
         }
 
-        Column(Modifier.align(Alignment.CenterEnd).padding(end = 14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            MapControlButton(
-                Icons.Rounded.Explore,
-                if (courseUp) "Norte arriba" else "Orientar según el rumbo",
-                active = courseUp,
-                onClick = { courseUp = !courseUp },
-            )
-            MapControlButton(
-                Icons.Rounded.MyLocation,
-                if (follow) "Dejar de seguir mi posición" else "Seguir mi posición",
-                tint = CumbreColors.Naranja,
-                active = follow,
-                onClick = { follow = !follow },
-            )
-            MapZoomControls(mapController)
-        }
-
-        MapBottomPanel(Modifier.align(Alignment.BottomCenter).windowInsetsPadding(WindowInsets.navigationBars)) {
-            TrackingPanel(
-                state = state,
-                altitude = fix?.altitudeMeters,
-                onPause = { scope.launch { container.trackingManager.pause() } },
-                onResume = { scope.launch { container.trackingManager.resume() } },
-                onFinish = { finishDialog = true },
-            )
+        Column(Modifier.align(Alignment.BottomCenter).fillMaxWidth()) {
+            Column(
+                Modifier.align(Alignment.End).padding(end = 14.dp, bottom = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalAlignment = Alignment.End,
+            ) {
+                MapControlButton(
+                    Icons.Rounded.Explore,
+                    if (courseUp) "Norte arriba" else "Orientar según el rumbo",
+                    active = courseUp,
+                    onClick = { courseUp = !courseUp },
+                )
+                MapZoomControls(mapController)
+                MapControlButton(
+                    Icons.Rounded.MyLocation,
+                    if (follow) "Dejar de seguir mi posición" else "Seguir mi posición",
+                    tint = CumbreColors.Naranja,
+                    active = follow,
+                    onClick = { follow = !follow },
+                )
+            }
+            MapBottomPanel(Modifier.windowInsetsPadding(WindowInsets.navigationBars)) {
+                TrackingPanel(
+                    state = state,
+                    altitude = fix?.altitudeMeters,
+                    onPause = { scope.launch { container.trackingManager.pause() } },
+                    onResume = { scope.launch { container.trackingManager.resume() } },
+                    onFinish = { finishDialog = true },
+                )
+            }
         }
     }
 
@@ -263,77 +274,93 @@ private fun TrackingPanel(
     onFinish: () -> Unit,
 ) {
     val follow = state.follow
-    if (follow != null) {
-        // Con una ruta, lo principal es cuánto falta para llegar (distancia y tiempo).
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom) {
-            Column(Modifier.weight(1f)) {
-                Text(
-                    if (follow.nearEnd) "Llegaste" else "Te falta",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Text(if (follow.nearEnd) "¡Final!" else Formatters.distance(follow.remainingMeters), style = DataText.Hero)
-                state.etaSeconds?.takeIf { !follow.nearEnd }?.let { eta ->
+    val paused = state.status == TrackingStatus.PAUSED
+    val muted = MaterialTheme.colorScheme.onSurfaceVariant
+    val heroColor = if (paused) muted else MaterialTheme.colorScheme.onSurface
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom) {
+        Column(Modifier.weight(1f)) {
+            if (follow != null) {
+                // Con una ruta, lo principal es cuánto falta para llegar (distancia y tiempo).
+                Text(if (follow.nearEnd) "Llegaste" else "Te falta", style = MaterialTheme.typography.labelLarge.copy(fontSize = 13.sp), color = muted)
+                if (follow.nearEnd) {
+                    Text("¡Final!", style = DataText.Display, color = heroColor)
+                } else {
+                    val (v, u) = Formatters.distanceParts(follow.remainingMeters)
+                    Row(verticalAlignment = Alignment.Bottom) {
+                        Text(v, style = DataText.Display, color = heroColor, maxLines = 1)
+                        Text(" $u", style = MaterialTheme.typography.titleLarge, color = muted, modifier = Modifier.padding(bottom = 5.dp))
+                    }
+                }
+                state.etaSeconds?.takeIf { !follow.nearEnd && !paused }?.let { eta ->
                     Text(
-                        "≈ ${Formatters.duration(eta)} · llegada ${arrivalClock(eta)}",
-                        style = MaterialTheme.typography.bodyMedium,
+                        "Llegada aprox. ${arrivalClock(eta)} (${Formatters.duration(eta)})",
+                        style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.primary,
                     )
                 }
-            }
-            Column(horizontalAlignment = Alignment.End) {
-                Text(Formatters.clock(state.elapsedMillis), style = DataText.Large)
-                Text(
-                    if (state.status == TrackingStatus.PAUSED) "En pausa" else "Recorrido ${Formatters.distance(state.stats.distanceMeters)}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
-    } else {
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom) {
-            Column(Modifier.weight(1f)) {
+            } else {
+                Text("Recorrido", style = MaterialTheme.typography.labelLarge.copy(fontSize = 13.sp), color = muted)
+                val (v, u) = Formatters.distanceParts(state.stats.distanceMeters)
                 Row(verticalAlignment = Alignment.Bottom) {
-                    Text(Formatters.kilometersValue(state.stats.distanceMeters), style = DataText.Hero)
-                    Text(" km", style = DataText.Medium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 4.dp))
+                    Text(v, style = DataText.Display, color = heroColor, maxLines = 1)
+                    Text(" $u", style = MaterialTheme.typography.titleLarge, color = muted, modifier = Modifier.padding(bottom = 5.dp))
                 }
-                Text(
-                    if (state.route != null) "Recorrido · esperando posición sobre el track" else "Recorrido",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            Column(horizontalAlignment = Alignment.End) {
-                Text(Formatters.clock(state.elapsedMillis), style = DataText.Large)
-                Text(if (state.status == TrackingStatus.PAUSED) "En pausa" else "Tiempo", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (state.route != null) {
+                    Text("Esperando tu posición sobre el track…", style = MaterialTheme.typography.bodySmall, color = muted)
+                }
             }
         }
-    }
-    HorizontalDivider(Modifier.padding(top = Spacing.m), color = MaterialTheme.colorScheme.outlineVariant)
-    Row(Modifier.fillMaxWidth().padding(vertical = Spacing.m)) {
-        PanelStat(state.currentSpeedMps?.takeIf { state.status == TrackingStatus.RECORDING }?.let { Formatters.speedKmhValue(it) } ?: "—", "km/h", "Vel. actual", Modifier.weight(1f))
-        PanelStat(if (state.stats.elapsedMillis > 60_000) Formatters.speedKmhValue(state.stats.averageSpeedMps) else "—", "km/h", "Vel. media", Modifier.weight(1f))
-        PanelStat(altitude?.let { Formatters.elevationValue(it) } ?: "—", "m", "Altitud", Modifier.weight(1f))
-        PanelStat(if (state.stats.pointCount > 10) "↑ ${Formatters.elevationValue(state.stats.elevationGainMeters)}" else "—", "m", "Desnivel est.", Modifier.weight(1f))
-    }
-    follow?.nextWaypoint?.let { wp ->
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = Spacing.m)) {
-            Icon(Icons.Rounded.Flag, contentDescription = null, tint = CumbreColors.Naranja, modifier = Modifier.size(20.dp))
+        Column(horizontalAlignment = Alignment.End) {
+            Text(Formatters.clock(state.elapsedMillis), style = DataText.Large.copy(fontSize = 26.sp), color = heroColor)
             Text(
-                "${wp.name ?: "Próximo waypoint"} · a ${Formatters.distance(follow.distanceToNextWaypointMeters ?: 0.0)}" +
-                    (state.etaToWaypointSeconds?.let { " (≈ ${Formatters.duration(it)})" } ?: ""),
-                style = MaterialTheme.typography.bodyMedium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(start = Spacing.s),
+                when {
+                    paused -> "tiempo detenido"
+                    follow != null -> "${Formatters.distance(state.stats.distanceMeters)} recorridos"
+                    else -> "en movimiento"
+                },
+                style = MaterialTheme.typography.bodySmall,
+                color = muted,
             )
         }
     }
-    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        if (state.status == TrackingStatus.RECORDING) {
-            SecondaryButton("Pausar", onClick = onPause, icon = Icons.Rounded.Pause, modifier = Modifier.weight(1f))
+    val profile = state.route?.profile.orEmpty()
+    if (follow != null && profile.size >= 2) {
+        val total = profile.last().distanceMeters
+        val fraction = if (total > 0) ((total - follow.remainingMeters) / total).toFloat() else 0f
+        RidgeSilhouette(
+            profile,
+            Modifier.fillMaxWidth().height(58.dp).padding(top = 10.dp),
+            style = RidgeStyle.STRIP,
+            progressFraction = fraction,
+            dimmed = paused,
+        )
+    }
+    if (paused) {
+        MessageBanner(
+            text = "Mientras está en pausa, Cumbre no usa el GPS para ahorrar batería. La actividad sigue guardada.",
+            kind = MessageKind.INFO,
+            modifier = Modifier.padding(vertical = Spacing.m),
+        )
+    } else {
+        Row(Modifier.fillMaxWidth().padding(top = Spacing.m, bottom = Spacing.m)) {
+            PanelStat(state.currentSpeedMps?.let { Formatters.speedKmhValue(it) } ?: "—", "km/h", Modifier.weight(1f))
+            PanelStat(altitude?.let { Formatters.elevationValue(it) } ?: "—", "m de altitud", Modifier.weight(1f))
+            PanelStat(if (state.stats.pointCount > 10) "↑ ${Formatters.elevationValue(state.stats.elevationGainMeters)}" else "—", "m subidos", Modifier.weight(1f))
+            val wp = follow?.nextWaypoint
+            val wpDistance = follow?.distanceToNextWaypointMeters
+            if (wp != null && wpDistance != null) {
+                val (v, u) = Formatters.distanceParts(wpDistance)
+                PanelStat(v, "$u a ${wp.name ?: "waypoint"}", Modifier.weight(1f))
+            } else {
+                PanelStat(if (state.stats.elapsedMillis > 60_000) Formatters.speedKmhValue(state.stats.averageSpeedMps) else "—", "km/h media", Modifier.weight(1f))
+            }
+        }
+    }
+    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        if (!paused) {
+            SecondaryButton("Pausar", onClick = onPause, icon = Icons.Rounded.Pause, modifier = Modifier.weight(1f).height(60.dp))
         } else {
-            PrimaryButton("Reanudar", onClick = onResume, icon = Icons.Rounded.PlayArrow, modifier = Modifier.weight(1f))
+            PrimaryButton("Reanudar", onClick = onResume, icon = Icons.Rounded.PlayArrow, modifier = Modifier.weight(1.3f).height(60.dp))
         }
         PrimaryButton(
             "Finalizar",
@@ -341,7 +368,7 @@ private fun TrackingPanel(
             icon = Icons.Rounded.Stop,
             container = MaterialTheme.colorScheme.errorContainer,
             content = MaterialTheme.colorScheme.onErrorContainer,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f).height(60.dp),
         )
     }
 }
@@ -350,13 +377,10 @@ private fun arrivalClock(etaSeconds: Long): String =
     java.text.SimpleDateFormat("HH:mm", java.util.Locale.ROOT).format(java.util.Date(System.currentTimeMillis() + etaSeconds * 1000))
 
 @Composable
-private fun PanelStat(value: String, unit: String, label: String, modifier: Modifier) {
+private fun PanelStat(value: String, label: String, modifier: Modifier) {
     Column(modifier) {
-        Row(verticalAlignment = Alignment.Bottom) {
-            Text(value, style = DataText.Medium, maxLines = 1)
-            if (value != "—") Text(" $unit", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 2.dp))
-        }
-        Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+        Text(value, style = DataText.Medium, maxLines = 1)
+        Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
 

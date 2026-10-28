@@ -454,6 +454,17 @@ class TrackingManager(
         }
     }
 
+    /** Solo para pruebas: olvida el estado en memoria, como si Android hubiera cerrado el proceso. */
+    @androidx.annotation.VisibleForTesting
+    internal fun resetForTest() {
+        tickerJob?.cancel()
+        activity = null
+        follower = null
+        recorded.clear()
+        clock = ActivityClock()
+        _state.value = TrackingState()
+    }
+
     private fun reset() {
         tickerJob?.cancel()
         activity = null

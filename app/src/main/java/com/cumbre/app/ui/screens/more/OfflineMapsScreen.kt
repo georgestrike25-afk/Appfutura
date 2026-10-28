@@ -57,6 +57,9 @@ import com.cumbre.app.ui.components.CumbreTopBar
 import com.cumbre.app.ui.components.IconBadge
 import com.cumbre.app.ui.components.MessageBanner
 import com.cumbre.app.ui.components.MessageKind
+import androidx.compose.foundation.background
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.layout.size
 import com.cumbre.app.ui.components.PrimaryButton
 import com.cumbre.app.ui.components.QuietButton
 import com.cumbre.app.ui.components.SectionTitle
@@ -161,23 +164,7 @@ fun OfflineMapsScreen(nav: NavController, incomingUri: Uri? = null, incomingKind
             val list = maps ?: emptyList()
             item {
                 val info = vm.storage(list)
-                CumbreCard {
-                    Column(Modifier.padding(Spacing.l)) {
-                        Row {
-                            Text("Espacio usado por mapas", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f))
-                            Text(Formatters.bytes(info.usedBytes), style = MaterialTheme.typography.titleSmall)
-                        }
-                        Spacer(Modifier.height(Spacing.s))
-                        val total = (info.usedBytes + info.freeBytes).coerceAtLeast(1)
-                        LinearProgressIndicator(
-                            progress = { (info.usedBytes.toFloat() / total).coerceIn(0f, 1f) },
-                            modifier = Modifier.fillMaxWidth(),
-                            color = MaterialTheme.colorScheme.primary,
-                            trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                        )
-                        Text("${Formatters.bytes(info.freeBytes)} libres en el teléfono", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 6.dp))
-                    }
-                }
+                StorageCard(mapsBytes = info.usedBytes, reliefBytes = reliefState.sizeBytes, freeBytes = info.freeBytes)
             }
             progress?.let { p ->
                 item {
@@ -329,5 +316,44 @@ private fun MapRow(map: OfflineMapEntity, onToggle: (Boolean) -> Unit, onDelete:
                 }
             }
         }
+    }
+}
+
+/** Espacio ocupado por mapas y relieve frente al libre del teléfono, en una sola barra. */
+@Composable
+private fun StorageCard(mapsBytes: Long, reliefBytes: Long, freeBytes: Long) {
+    val mapsColor = MaterialTheme.colorScheme.primary
+    val reliefColor = com.cumbre.app.ui.theme.CumbreColors.Naranja
+    val total = (mapsBytes + reliefBytes + freeBytes).coerceAtLeast(1).toFloat()
+    CumbreCard {
+        Column(Modifier.padding(Spacing.l)) {
+            Row(verticalAlignment = androidx.compose.ui.Alignment.Bottom) {
+                Text(Formatters.bytes(mapsBytes + reliefBytes), style = com.cumbre.app.ui.theme.DataText.Large)
+                Text(" usados por Cumbre", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 3.dp))
+            }
+            Row(
+                Modifier.padding(top = Spacing.m).fillMaxWidth().height(10.dp)
+                    .clip(androidx.compose.foundation.shape.CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+            ) {
+                // Un mínimo visible para que una porción pequeña no desaparezca.
+                fun w(bytes: Long) = if (bytes <= 0) 0f else (bytes / total).coerceAtLeast(0.015f)
+                if (mapsBytes > 0) Spacer(Modifier.fillMaxWidth(w(mapsBytes)).height(10.dp).background(mapsColor))
+                if (reliefBytes > 0) Spacer(Modifier.fillMaxWidth(w(reliefBytes) / (1f - w(mapsBytes)).coerceAtLeast(0.01f)).height(10.dp).background(reliefColor))
+            }
+            Row(Modifier.padding(top = Spacing.m), horizontalArrangement = Arrangement.spacedBy(Spacing.l)) {
+                StorageLegend(mapsColor, "Mapas", mapsBytes)
+                StorageLegend(reliefColor, "Relieve", reliefBytes)
+                StorageLegend(MaterialTheme.colorScheme.surfaceVariant, "Libre", freeBytes)
+            }
+        }
+    }
+}
+
+@Composable
+private fun StorageLegend(color: androidx.compose.ui.graphics.Color, label: String, bytes: Long) {
+    Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+        Spacer(Modifier.size(10.dp).clip(androidx.compose.foundation.shape.CircleShape).background(color))
+        Text("$label ${Formatters.bytes(bytes)}", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(start = 6.dp))
     }
 }
