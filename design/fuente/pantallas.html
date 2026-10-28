@@ -1,0 +1,681 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<title>Cumbre · propuesta de interfaz v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800&display=block" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0..1,0&display=block" rel="stylesheet">
+<style>
+/* ---------- Tokens de Cumbre (propuesta v2) ---------- */
+:root{
+  --montana:#0F403A; --bosque:#267D5B; --suave:#A7C4B2; --naranja:#FF8A00; --negro:#1E1E1E; --fondo:#F5F7F6; --blanco:#FFFFFF;
+  --track:#D6247F; --recorrido:#2F7DE1;
+  --texto2:#4E5B57; --linea:#DCE3E0; --superficie2:#EDF2EF; --contenedor:#D7E9DF;
+  --error:#C62828; --error-bg:#FDECEA; --aviso:#9A5B00; --aviso-bg:#FFF1D6; --ok:#1E6B4B; --ok-bg:#E1EFE6;
+  --r-s:10px; --r-m:14px; --r-l:20px; --r-xl:28px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,sans-serif;color:var(--negro);background:#E3E8E6;padding:0;width:1560px}
+.ms{font-family:'Material Symbols Rounded';font-weight:400;font-style:normal;font-size:24px;line-height:1;display:inline-block;font-variation-settings:'FILL' 0;-webkit-font-smoothing:antialiased}
+.f{font-variation-settings:'FILL' 1}
+.num{font-variant-numeric:tabular-nums}
+.board{display:flex;gap:40px;align-items:flex-start;margin-bottom:56px;padding:44px 48px 40px;background:#E3E8E6;border-radius:4px}
+.bh{width:100%;margin-bottom:22px}
+.bh h1{font:800 30px Montserrat;color:var(--montana)}
+.bh p{font-size:15px;color:#4A5A55;margin-top:6px;max-width:1100px;line-height:1.5}
+.cap{font:600 14px Inter;color:#33433E;margin-top:14px;text-align:center}
+.cap small{display:block;font-weight:400;color:#5E6B66;margin-top:2px}
+
+/* ---------- Teléfono ---------- */
+.phone{width:412px;height:915px;border-radius:46px;background:#101413;padding:10px;box-shadow:0 30px 70px rgba(15,40,35,.28)}
+.scr{width:100%;height:100%;border-radius:36px;overflow:hidden;position:relative;background:var(--fondo);display:flex;flex-direction:column}
+.dark .scr,.scr.dark{background:#0E1614;color:#E8F0EC}
+.sb{height:34px;flex:none;display:flex;justify-content:space-between;align-items:center;padding:0 26px;font:600 13px Inter;position:relative;z-index:3}
+.sb .ms{font-size:17px}
+.gest{height:18px;flex:none;display:flex;justify-content:center;align-items:center}
+.gest i{width:120px;height:4px;border-radius:2px;background:#1E1E1E;opacity:.55}
+
+/* barra superior */
+.top{background:var(--montana);color:#fff;padding:2px 20px 16px;flex:none}
+.top .row1{display:flex;align-items:center;justify-content:space-between;height:52px}
+.top h2{font:700 24px Montserrat;letter-spacing:-.2px}
+.top .ib{width:44px;height:44px;border-radius:22px;display:flex;align-items:center;justify-content:center;color:#fff}
+
+/* navegación inferior */
+.nav{flex:none;height:80px;background:#fff;display:flex;justify-content:space-around;align-items:center;border-top:1px solid #E3E9E6;padding-bottom:4px}
+.nav div{display:flex;flex-direction:column;align-items:center;gap:4px;font:500 12px Inter;color:#55615D;width:72px}
+.nav .pill{width:60px;height:32px;border-radius:16px;display:flex;align-items:center;justify-content:center}
+.nav .on{color:var(--montana);font-weight:700}
+.nav .on .pill{background:var(--contenedor)}
+.nav .on .ms{font-variation-settings:'FILL' 1}
+
+/* botones */
+.btn{height:52px;border-radius:var(--r-m);display:flex;align-items:center;justify-content:center;gap:8px;font:600 15.5px Inter;padding:0 18px;white-space:nowrap}
+.btn .ms{font-size:21px}
+.b1{background:var(--bosque);color:#fff}
+.b2{background:#fff;color:var(--montana);box-shadow:inset 0 0 0 1.5px #C5D3CC}
+.bacc{background:var(--naranja);color:#1E1E1E}
+.bdanger{background:var(--error-bg);color:#8A1C17}
+.big{height:60px;font-size:17px;border-radius:18px}
+
+/* tarjetas, chips, etiquetas */
+.card{background:#fff;border-radius:var(--r-l);box-shadow:0 1px 2px rgba(15,64,58,.06),0 0 0 1px rgba(15,64,58,.04)}
+.chip{height:36px;padding:0 14px;border-radius:12px;display:inline-flex;align-items:center;gap:6px;font:500 13.5px Inter;background:#fff;color:#33433E;box-shadow:inset 0 0 0 1px #CBD7D1;white-space:nowrap}
+.chip.on{background:var(--montana);color:#fff;box-shadow:none}
+.tag{height:24px;padding:0 9px;border-radius:8px;display:inline-flex;align-items:center;gap:4px;font:600 12px Inter;white-space:nowrap}
+.tag .ms{font-size:15px}
+.t-ok{background:var(--ok-bg);color:var(--ok)} .t-n{background:var(--superficie2);color:#4E5B57} .t-w{background:var(--aviso-bg);color:var(--aviso)}
+.t-diff{background:#F1ECE2;color:#6B4E1E}
+
+/* datos */
+.stats{display:grid;gap:14px 10px}
+.st .v{font:700 19px Inter;letter-spacing:-.2px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.st .v small{font-size:13px;font-weight:600;color:var(--texto2);margin-left:2px}
+.st .l{font:500 12.5px Inter;color:var(--texto2);margin-top:2px;display:flex;align-items:center;gap:4px}
+.st .l .ms{font-size:15px}
+.sect{font:700 15px Montserrat;color:var(--negro);margin:22px 0 10px}
+
+/* controles del mapa */
+.ctl{width:52px;height:52px;border-radius:16px;background:#fff;display:flex;align-items:center;justify-content:center;color:var(--montana);box-shadow:0 2px 10px rgba(0,0,0,.18)}
+.ctl.group{height:auto;flex-direction:column;padding:0}
+.ctl.group span{height:50px;width:52px;display:flex;align-items:center;justify-content:center}
+.ctl.group span+span{border-top:1px solid #E2E8E5}
+.ctl.row{flex-direction:row;height:52px;width:auto;padding:0}
+.ctl.row span{width:50px;height:52px;display:flex;align-items:center;justify-content:center}
+.ctl.row span+span{border-top:none;border-left:1px solid #E2E8E5}
+.capsule{height:40px;border-radius:20px;background:#fff;display:inline-flex;align-items:center;gap:7px;padding:0 14px 0 11px;font:600 13px Inter;box-shadow:0 2px 10px rgba(0,0,0,.16);white-space:nowrap}
+.capsule .ms{font-size:19px}
+.sheet{background:#fff;border-radius:26px 26px 0 0;box-shadow:0 -6px 24px rgba(0,0,0,.14);padding:10px 18px 14px;position:relative}
+.handle{width:38px;height:4px;border-radius:2px;background:#CFD8D4;margin:0 auto 12px}
+.banner{border-radius:var(--r-m);padding:12px 14px;display:flex;gap:11px;font-size:13.5px;line-height:1.4}
+.banner .ms{font-size:21px;flex:none}
+.banner b{display:block;font-weight:600;margin-bottom:1px}
+.bw{background:var(--aviso-bg);color:#4F3200} .bw .ms{color:var(--aviso)}
+.be{background:var(--error-bg);color:#6E1814} .be .ms{color:var(--error)}
+.bi{background:#E4EEEA;color:#16352F} .bi .ms{color:var(--bosque)}
+.bok{background:var(--ok-bg);color:#123F2D} .bok .ms{color:var(--ok)}
+canvas.map{position:absolute;inset:0;width:100%;height:100%;display:block}
+.scale{position:absolute;font:600 11px Inter;color:#1E1E1E}
+.scale i{display:block;height:5px;border:2px solid #1E1E1E;border-top:none;margin-top:2px}
+.attr{position:absolute;right:10px;font:500 9.5px Inter;color:#3A4642;background:rgba(255,255,255,.7);padding:1px 5px;border-radius:4px}
+.list-row{display:flex;align-items:center;gap:14px;padding:13px 16px}
+.list-row+.list-row{border-top:1px solid #EDF1EF}
+.ico{width:40px;height:40px;border-radius:12px;background:var(--contenedor);color:var(--montana);display:flex;align-items:center;justify-content:center;flex:none}
+.sw{width:52px;height:32px;border-radius:16px;background:var(--bosque);position:relative;flex:none}
+.sw::after{content:'';position:absolute;right:4px;top:4px;width:24px;height:24px;border-radius:12px;background:#fff}
+.sw.off{background:#DDE5E1;box-shadow:inset 0 0 0 2px #8A9792}.sw.off::after{left:6px;right:auto;top:6px;width:20px;height:20px;background:#8A9792}
+.seg{display:flex;background:var(--superficie2);border-radius:14px;padding:4px;gap:4px}
+.seg div{flex:1;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;gap:6px;font:600 13.5px Inter;color:#4E5B57}
+.seg .on{background:#fff;color:var(--montana);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.progress{height:8px;border-radius:4px;background:#E3EAE6;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--bosque);border-radius:4px}
+.pill-state{height:32px;border-radius:16px;display:inline-flex;align-items:center;gap:7px;padding:0 13px 0 11px;font:700 13px Inter}
+.dot{width:10px;height:10px;border-radius:5px}
+</style></head><body>
+
+<!-- ======================= 02 · INICIO, MAPA, RUTAS ======================= -->
+<section class="board" id="b-inicio" style="flex-wrap:wrap">
+ <div class="bh"><h1>Inicio, mapa y rutas</h1><p>El perfil de elevación es la firma visual de Cumbre: la silueta de la montaña que vas a caminar aparece en el inicio, en cada tarjeta de ruta y en la navegación. El mapa ocupa casi toda la pantalla, con controles agrupados abajo a la derecha, al alcance del pulgar.</p></div>
+
+ <!-- INICIO -->
+ <div><div class="phone" id="s-inicio"><div class="scr">
+  <div class="sb"><span>9:41</span><span><span class="ms">signal_cellular_alt</span> <span class="ms">battery_5_bar</span></span></div>
+  <div style="flex:1;overflow:hidden;padding:4px 18px 0">
+   <div style="display:flex;align-items:center;justify-content:space-between;margin:6px 0 16px">
+    <div style="display:flex;align-items:center;gap:10px"><img src="icono-v2.svg" width="34" style="border-radius:10px"><span style="font:800 23px Montserrat;color:var(--montana)">Cumbre</span></div>
+    <span class="tag t-ok" style="height:30px;padding:0 11px;border-radius:15px"><span class="ms">cloud_off</span>Listo sin conexión</span>
+   </div>
+   <!-- héroe: la ruta en curso, con su silueta -->
+   <div style="background:var(--montana);border-radius:24px;color:#fff;overflow:hidden;position:relative">
+    <div style="padding:16px 18px 0">
+     <div style="font:500 13px Inter;color:#B9D3C6">Seguí donde quedaste</div>
+     <div style="font:700 20px Montserrat;margin-top:3px;line-height:1.2">Cascada de los Cóndores y Los Hornillos</div>
+     <div style="display:flex;gap:22px;margin-top:12px">
+      <div><div style="font:700 19px Inter" class="num">15,0 <small style="font-size:13px;color:#B9D3C6">km</small></div><div style="font-size:12px;color:#B9D3C6">Distancia</div></div>
+      <div><div style="font:700 19px Inter" class="num">823 <small style="font-size:13px;color:#B9D3C6">m</small></div><div style="font-size:12px;color:#B9D3C6">Desnivel +</div></div>
+      <div><div style="font:700 19px Inter" class="num">6 h 16</div><div style="font-size:12px;color:#B9D3C6">Estimado</div></div>
+     </div>
+    </div>
+    <svg class="ridge" data-h="104" data-mode="hero" style="display:block;width:100%;height:104px;margin-top:6px"></svg>
+    <div style="display:flex;gap:10px;padding:0 18px 16px;margin-top:-4px;position:relative">
+     <div class="btn bacc" style="flex:1.3"><span class="ms f">navigation</span>Iniciar</div>
+     <div class="btn" style="flex:1;background:rgba(255,255,255,.12);color:#fff">Ver ruta</div>
+    </div>
+   </div>
+   <!-- accesos -->
+   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px">
+    <div class="card" style="padding:14px 12px"><div class="ico"><span class="ms">upload_file</span></div><div style="font:600 14px Inter;margin-top:10px">Importar</div><div style="font-size:12px;color:var(--texto2);margin-top:2px">GPX o Wikiloc</div></div>
+    <div class="card" style="padding:14px 12px"><div class="ico" style="background:#FCE7E5;color:#B3261E"><span class="ms f">radio_button_checked</span></div><div style="font:600 14px Inter;margin-top:10px">Grabar</div><div style="font-size:12px;color:var(--texto2);margin-top:2px">Actividad libre</div></div>
+    <div class="card" style="padding:14px 12px"><div class="ico"><span class="ms">download_for_offline</span></div><div style="font:600 14px Inter;margin-top:10px">Mapas</div><div style="font-size:12px;color:var(--texto2);margin-top:2px">2 instalados</div></div>
+   </div>
+   <div style="display:flex;justify-content:space-between;align-items:baseline"><div class="sect">Rutas recientes</div><span style="font:600 13.5px Inter;color:var(--bosque)">Ver todas</span></div>
+   <div style="display:flex;gap:12px">
+    <div class="card" style="width:200px;flex:none;overflow:hidden"><canvas class="mini" data-route="b" width="400" height="200" style="width:100%;height:100px;display:block"></canvas><div style="padding:10px 12px 12px"><div style="font:600 14px Inter">Cerro Uritorco</div><div style="display:flex;gap:12px;margin-top:6px;font:600 13px Inter" class="num"><span>9,6 km</span><span style="color:var(--bosque)">↑ 1.010 m</span></div></div></div>
+    <div class="card" style="width:200px;flex:none;overflow:hidden"><canvas class="mini" data-route="c" width="400" height="200" style="width:100%;height:100px;display:block"></canvas><div style="padding:10px 12px 12px"><div style="font:600 14px Inter">Quebrada del Condorito</div><div style="display:flex;gap:12px;margin-top:6px;font:600 13px Inter" class="num"><span>11,2 km</span><span style="color:var(--bosque)">↑ 486 m</span></div></div></div>
+   </div>
+  </div>
+  <div class="nav"><div class="on"><div class="pill"><span class="ms">home</span></div>Inicio</div><div><div class="pill"><span class="ms">map</span></div>Mapa</div><div><div class="pill"><span class="ms">route</span></div>Rutas</div><div><div class="pill"><span class="ms">hiking</span></div>Actividad</div><div><div class="pill"><span class="ms">more_horiz</span></div>Más</div></div>
+  <div class="gest" style="background:#fff"><i></i></div>
+ </div></div><div class="cap">Inicio<small>Nuevo destino: ruta para seguir, accesos y recientes</small></div></div>
+
+ <!-- MAPA -->
+ <div><div class="phone" id="s-mapa"><div class="scr">
+  <div style="position:absolute;inset:0 0 98px 0"><canvas class="map" data-view="mapa"></canvas>
+   <div class="scale" style="left:14px;bottom:96px">500 m<i style="width:64px"></i></div><div class="attr" style="bottom:6px">© OpenStreetMap</div></div>
+  <div class="sb" style="background:linear-gradient(rgba(255,255,255,.85),rgba(255,255,255,0))"><span>9:41</span><span><span class="ms">signal_cellular_alt</span> <span class="ms">battery_5_bar</span></span></div>
+  <div style="position:relative;z-index:2;display:flex;justify-content:space-between;padding:6px 14px">
+   <span class="capsule"><span class="ms f" style="color:#2E7D32">gps_fixed</span>GPS ±4 m</span>
+   <span class="capsule"><span class="ms" style="color:var(--ok)">cloud_off</span>Mapa offline</span>
+  </div>
+  <div style="position:absolute;right:14px;top:110px;z-index:2"><div class="ctl"><span class="ms">layers</span></div></div>
+  <div style="position:absolute;right:14px;bottom:250px;z-index:2;display:flex;flex-direction:column;gap:12px;align-items:flex-end">
+   <div class="ctl"><span class="ms" style="transform:rotate(-20deg)">navigation</span></div>
+   <div class="ctl group"><span><span class="ms">add</span></span><span><span class="ms">remove</span></span></div>
+   <div class="ctl" style="background:var(--naranja);color:#1E1E1E"><span class="ms f">my_location</span></div>
+  </div>
+  <div style="flex:1"></div>
+  <div class="sheet" style="z-index:2">
+   <div class="handle"></div>
+   <div style="display:flex;align-items:center;gap:12px">
+    <svg class="ridge" data-h="46" data-mode="mini" style="width:84px;height:46px;flex:none;border-radius:10px;background:var(--superficie2)"></svg>
+    <div style="flex:1;min-width:0"><div style="font:700 15.5px Montserrat;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Cascada de los Cóndores</div><div style="font-size:13px;color:var(--texto2);margin-top:2px">El inicio está a 2,4 km de vos</div></div>
+    <div class="btn b1" style="height:48px;padding:0 16px"><span class="ms f">navigation</span>Iniciar</div>
+   </div>
+  </div>
+  <div class="nav"><div><div class="pill"><span class="ms">home</span></div>Inicio</div><div class="on"><div class="pill"><span class="ms">map</span></div>Mapa</div><div><div class="pill"><span class="ms">route</span></div>Rutas</div><div><div class="pill"><span class="ms">hiking</span></div>Actividad</div><div><div class="pill"><span class="ms">more_horiz</span></div>Más</div></div>
+  <div class="gest" style="background:#fff"><i></i></div>
+ </div></div><div class="cap">Mapa<small>Controles agrupados al alcance del pulgar; panel compacto</small></div></div>
+
+ <!-- RUTAS -->
+ <div><div class="phone" id="s-rutas"><div class="scr">
+  <div class="top"><div class="sb" style="padding:0 6px;margin:0 -0px"><span>9:41</span><span><span class="ms">signal_cellular_alt</span> <span class="ms">battery_5_bar</span></span></div>
+   <div class="row1"><h2>Rutas</h2><div style="display:flex"><div class="ib"><span class="ms">tune</span></div><div class="ib"><span class="ms">swap_vert</span></div></div></div>
+   <div style="height:46px;border-radius:14px;background:rgba(255,255,255,.12);display:flex;align-items:center;gap:10px;padding:0 14px;color:#C6DCD1;font-size:15px"><span class="ms" style="font-size:21px">search</span>Buscar en tus rutas</div>
+  </div>
+  <div style="display:flex;gap:8px;padding:14px 18px 6px;overflow:hidden"><span class="chip on">Todas</span><span class="chip">Mis rutas</span><span class="chip">Importadas</span><span class="chip">Favoritas</span></div>
+  <div style="flex:1;overflow:hidden;padding:8px 18px;display:flex;flex-direction:column;gap:12px">
+   <div class="card" style="overflow:hidden">
+    <div style="display:flex;gap:12px;padding:12px 12px 0">
+     <canvas class="mini" data-route="a" width="200" height="200" style="width:88px;height:88px;border-radius:12px;flex:none"></canvas>
+     <div style="flex:1;min-width:0">
+      <div style="display:flex;gap:6px;align-items:flex-start"><div style="font:700 15.5px Montserrat;line-height:1.25;flex:1">Cascada de los Cóndores y Los Hornillos</div><span class="ms f" style="color:var(--naranja);font-size:22px">star</span></div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"><span class="tag t-ok"><span class="ms f">offline_pin</span>Offline</span><span class="tag t-diff"><span class="ms">signal_cellular_alt_2_bar</span>Moderada</span><span class="tag t-n">Wikiloc</span></div>
+     </div>
+    </div>
+    <div class="stats" style="grid-template-columns:repeat(3,1fr);padding:12px 14px 4px">
+     <div class="st"><div class="v">15,0<small>km</small></div><div class="l">Distancia</div></div>
+     <div class="st"><div class="v">823<small>m</small></div><div class="l">Desnivel +</div></div>
+     <div class="st"><div class="v">6 h 16</div><div class="l">Estimado</div></div>
+    </div>
+    <svg class="ridge" data-h="36" data-mode="strip" style="display:block;width:100%;height:36px"></svg>
+   </div>
+   <div class="card" style="overflow:hidden">
+    <div style="display:flex;gap:12px;padding:12px 12px 0">
+     <canvas class="mini" data-route="b" width="200" height="200" style="width:88px;height:88px;border-radius:12px;flex:none"></canvas>
+     <div style="flex:1;min-width:0">
+      <div style="font:700 15.5px Montserrat;line-height:1.25">Cerro Uritorco</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"><span class="tag t-n"><span class="ms">cloud_off</span>Sin mapa</span><span class="tag t-diff"><span class="ms">signal_cellular_alt</span>Difícil</span><span class="tag t-n">Mi actividad</span></div>
+     </div>
+    </div>
+    <div class="stats" style="grid-template-columns:repeat(3,1fr);padding:12px 14px 4px">
+     <div class="st"><div class="v">9,6<small>km</small></div><div class="l">Distancia</div></div>
+     <div class="st"><div class="v">1.010<small>m</small></div><div class="l">Desnivel +</div></div>
+     <div class="st"><div class="v">5 h 10</div><div class="l">Estimado</div></div>
+    </div>
+    <svg class="ridge" data-h="36" data-mode="strip" data-seed="7" style="display:block;width:100%;height:36px"></svg>
+   </div>
+  </div>
+  <div style="position:absolute;right:18px;bottom:112px" class="btn b1" ><span class="ms">add</span>Importar GPX</div>
+  <div class="nav"><div><div class="pill"><span class="ms">home</span></div>Inicio</div><div><div class="pill"><span class="ms">map</span></div>Mapa</div><div class="on"><div class="pill"><span class="ms">route</span></div>Rutas</div><div><div class="pill"><span class="ms">hiking</span></div>Actividad</div><div><div class="pill"><span class="ms">more_horiz</span></div>Más</div></div>
+  <div class="gest" style="background:#fff"><i></i></div>
+ </div></div><div class="cap">Rutas<small>Datos en columnas, dificultad estimada y perfil de cada ruta</small></div></div>
+</section>
+
+<!-- ======================= 03 · IMPORTACIÓN ======================= -->
+<section class="board" id="b-import" style="flex-wrap:wrap">
+ <div class="bh"><h1>Importación y preparación de un GPX</h1><p>Antes de guardar, la ruta se revisa: mapa, datos clave, perfil interactivo con la cumbre marcada y avisos de calidad. Si el archivo no sirve, el error dice qué pasó y qué hacer.</p></div>
+ <div><div class="phone" id="s-import"><div class="scr">
+  <div style="position:relative;height:300px;flex:none"><canvas class="map" data-view="import"></canvas>
+   <div class="sb" style="position:absolute;left:0;right:0;top:0;background:linear-gradient(rgba(255,255,255,.85),rgba(255,255,255,0))"><span>9:41</span><span><span class="ms">signal_cellular_alt</span> <span class="ms">battery_5_bar</span></span></div>
+   <div style="position:absolute;top:40px;left:14px;right:14px;display:flex;justify-content:space-between"><div class="ctl" style="width:46px;height:46px;border-radius:23px"><span class="ms">close</span></div><div class="ctl" style="width:46px;height:46px;border-radius:23px"><span class="ms">open_in_full</span></div></div>
+  </div>
+  <div style="flex:1;overflow:hidden;padding:16px 18px 0">
+   <div style="font:500 12.5px Inter;color:var(--texto2)">Preparar ruta</div>
+   <div style="display:flex;align-items:center;gap:8px;border-bottom:2px solid var(--bosque);padding:4px 0 8px"><div style="font:700 20px Montserrat;flex:1">Cascada de los Cóndores y Los Hornillos</div><span class="ms" style="color:var(--texto2);font-size:20px">edit</span></div>
+   <div style="display:flex;gap:6px;margin-top:10px"><span class="tag t-n">wikiloc-cascada.gpx</span><span class="tag t-n">468 KB</span><span class="tag t-ok"><span class="ms f">offline_pin</span>Mapa: Córdoba</span></div>
+   <div class="stats" style="grid-template-columns:repeat(3,1fr);margin-top:16px">
+    <div class="st"><div class="v">15,0<small>km</small></div><div class="l">Distancia</div></div>
+    <div class="st"><div class="v">823<small>m</small></div><div class="l">Desnivel +</div></div>
+    <div class="st"><div class="v">823<small>m</small></div><div class="l">Desnivel −</div></div>
+    <div class="st"><div class="v">6 h 16</div><div class="l">Estimado</div></div>
+    <div class="st"><div class="v">1.131<small>m</small></div><div class="l" id="cumbre-km">Cumbre</div></div>
+    <div class="st"><div class="v" style="font-size:16px;color:#6B4E1E">Moderada</div><div class="l">Dificultad est.</div></div>
+   </div>
+   <div class="sect" style="margin-top:18px">Perfil de elevación</div>
+   <svg class="ridge" data-h="112" data-mode="chart" data-cursor="0.2" style="display:block;width:100%;height:112px"></svg>
+   <div style="font-size:12.5px;color:var(--texto2);margin-top:6px">Tocá o arrastrá el perfil para ver ese punto en el mapa.</div>
+   <div class="banner bw" style="margin-top:14px"><span class="ms">warning</span><div><b>1 aviso de calidad</b>Hay un salto de 640 m entre dos puntos cerca del km 11,2. Puede faltar un tramo.</div></div>
+  </div>
+  <div style="display:flex;gap:12px;padding:12px 18px 10px;background:var(--fondo);box-shadow:0 -1px 0 #E1E8E4"><div class="btn b2" style="flex:1">Cancelar</div><div class="btn b1" style="flex:1.5"><span class="ms">save</span>Guardar ruta</div></div>
+  <div class="gest"><i></i></div>
+ </div></div><div class="cap">Vista previa al importar<small>El punto azul sigue tu dedo sobre el perfil</small></div></div>
+
+ <div><div class="phone" id="s-import-error"><div class="scr">
+  <div class="top"><div class="sb" style="padding:0 6px"><span>9:41</span><span><span class="ms">signal_cellular_alt</span> <span class="ms">battery_5_bar</span></span></div>
+   <div class="row1"><div style="display:flex;align-items:center;gap:6px"><div class="ib" style="margin-left:-10px"><span class="ms">arrow_back</span></div><h2 style="font-size:21px">Preparar ruta</h2></div></div></div>
+  <div style="flex:1;padding:56px 30px 0;display:flex;flex-direction:column;align-items:center;text-align:center">
+   <div style="width:88px;height:88px;border-radius:44px;background:var(--error-bg);display:flex;align-items:center;justify-content:center"><span class="ms" style="font-size:44px;color:var(--error)">draft</span></div>
+   <div style="font:700 21px Montserrat;margin-top:22px">Este archivo no es un GPX válido</div>
+   <div style="font-size:15px;color:var(--texto2);line-height:1.5;margin-top:10px;max-width:310px">«ruta-final (1).gpx» termina antes de tiempo, en la línea 2.184. Suele pasar cuando la descarga se cortó.</div>
+   <div class="card" style="width:100%;margin-top:26px;text-align:left;padding:4px 0">
+    <div class="list-row"><span class="ms" style="color:var(--bosque)">refresh</span><div style="font-size:14px">Descargalo de nuevo desde Wikiloc</div></div>
+    <div class="list-row"><span class="ms" style="color:var(--bosque)">folder_open</span><div style="font-size:14px">Elegí otro archivo del teléfono</div></div>
+   </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:10px;padding:0 18px 12px"><div class="btn b1"><span class="ms">upload_file</span>Elegir otro archivo</div><div class="btn b2">Volver</div></div>
+  <div class="gest"><i></i></div>
+ </div></div><div class="cap">Archivo inválido<small>Qué pasó y cómo seguir, sin culpas</small></div></div>
+
+ <div><div class="phone" id="s-detalle"><div class="scr">
+  <div style="position:relative;height:330px;flex:none"><canvas class="map" data-view="detalle"></canvas>
+   <div class="sb" style="position:absolute;left:0;right:0;top:0;background:linear-gradient(rgba(255,255,255,.85),rgba(255,255,255,0))"><span>9:41</span><span><span class="ms">signal_cellular_alt</span> <span class="ms">battery_5_bar</span></span></div>
+   <div style="position:absolute;top:40px;left:14px;right:14px;display:flex;justify-content:space-between"><div class="ctl" style="width:46px;height:46px;border-radius:23px"><span class="ms">arrow_back</span></div><div style="display:flex;gap:10px"><div class="ctl" style="width:46px;height:46px;border-radius:23px;color:var(--naranja)"><span class="ms f">star</span></div><div class="ctl" style="width:46px;height:46px;border-radius:23px"><span class="ms">more_vert</span></div></div></div>
+   <div style="position:absolute;right:14px;bottom:14px;display:flex;gap:10px"><div class="ctl row"><span><span class="ms">remove</span></span><span><span class="ms">add</span></span></div><div class="ctl"><span class="ms">fullscreen</span></div></div>
+  </div>
+  <div style="flex:1;overflow:hidden;padding:16px 18px 0">
+   <div style="display:flex;gap:6px"><span class="tag t-ok"><span class="ms f">offline_pin</span>Mapa offline: Córdoba</span><span class="tag t-diff"><span class="ms">signal_cellular_alt_2_bar</span>Moderada</span></div>
+   <div style="font:700 22px Montserrat;margin-top:8px;line-height:1.2">Cascada de los Cóndores y Los Hornillos</div>
+   <div class="stats" style="grid-template-columns:repeat(3,1fr);margin-top:14px">
+    <div class="st"><div class="v">15,0<small>km</small></div><div class="l">Distancia</div></div>
+    <div class="st"><div class="v">823<small>m</small></div><div class="l">Desnivel +</div></div>
+    <div class="st"><div class="v">6 h 16</div><div class="l">Estimado</div></div>
+   </div>
+   <div class="sect" style="margin-top:16px">Perfil de elevación</div>
+   <svg class="ridge" data-h="112" data-mode="chart" style="display:block;width:100%;height:112px"></svg>
+   <div class="cumbre-txt" style="font-size:12.5px;color:var(--texto2);margin-top:6px"></div>
+  </div>
+  <div style="display:flex;gap:12px;padding:12px 18px 10px;box-shadow:0 -1px 0 #E1E8E4"><div class="btn b2" style="width:56px;padding:0"><span class="ms">share</span></div><div class="btn bacc big" style="flex:1;height:52px"><span class="ms f">navigation</span>Iniciar recorrido</div></div>
+  <div class="gest"><i></i></div>
+ </div></div><div class="cap">Detalle de ruta<small>Mapa fijo arriba, zoom y pantalla completa</small></div></div>
+</section>
+
+<!-- ======================= 04 · NAVEGACIÓN ======================= -->
+<section class="board" id="b-nav" style="flex-wrap:wrap">
+ <div class="bh"><h1>Navegación y seguimiento</h1><p>Pensada para usar al sol y caminando: cifras grandes, botones de 60 dp y el estado siempre visible arriba (grabando, en pausa o finalizada). El perfil inferior muestra dónde estás en la montaña y cuánto queda para la cumbre.</p></div>
+ <div><div class="phone" id="s-nav"><div class="scr">
+  <div style="position:absolute;inset:0 0 330px 0"><canvas class="map" data-view="nav"></canvas><div class="scale" style="left:14px;bottom:14px">200 m<i style="width:60px"></i></div></div>
+  <div class="sb" style="background:linear-gradient(rgba(255,255,255,.85),rgba(255,255,255,0))"><span>9:41</span><span><span class="ms">signal_cellular_alt</span> <span class="ms">battery_4_bar</span></span></div>
+  <div style="position:relative;z-index:2;display:flex;justify-content:space-between;align-items:center;padding:4px 14px">
+   <span class="pill-state" style="background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.16);color:#B3261E"><i class="dot" style="background:#D93025;box-shadow:0 0 0 4px rgba(217,48,37,.18)"></i>Grabando</span>
+   <span class="capsule"><span class="ms f" style="color:#2E7D32">gps_fixed</span>±4 m</span>
+  </div>
+  <div style="position:relative;z-index:2;margin:8px 14px 0" class="banner bw"><span class="ms">alt_route</span><div><b>Te desviaste del recorrido</b>Estás a 68 m del track. Volvé hacia la línea magenta.</div></div>
+  <div style="position:absolute;right:14px;top:330px;z-index:2;display:flex;flex-direction:column;gap:12px">
+   <div class="ctl"><span class="ms">explore</span></div>
+   <div class="ctl group"><span><span class="ms">add</span></span><span><span class="ms">remove</span></span></div>
+   <div class="ctl" style="background:var(--naranja);color:#1E1E1E"><span class="ms f">my_location</span></div>
+  </div>
+  <div style="flex:1"></div>
+  <div class="sheet" style="padding-bottom:6px;z-index:2">
+   <div class="handle"></div>
+   <div style="display:flex;justify-content:space-between;align-items:flex-end">
+    <div><div style="font:600 13px Inter;color:var(--texto2)">Te falta</div><div style="font:800 40px Montserrat;letter-spacing:-1px;line-height:1.05" class="num">7,4 <span style="font-size:20px;font-weight:700;color:var(--texto2)">km</span></div><div style="font:600 14px Inter;color:var(--bosque);margin-top:2px">Llegada aprox. 14:32 (2 h 40 min)</div></div>
+    <div style="text-align:right"><div style="font:700 26px Inter" class="num">2:51:08</div><div style="font-size:12.5px;color:var(--texto2)">7,6 km recorridos</div></div>
+   </div>
+   <svg class="ridge" data-h="58" data-mode="progress" data-cursor="0.507" style="display:block;width:100%;height:58px;margin-top:10px"></svg>
+   <div class="stats" style="grid-template-columns:repeat(4,1fr);margin:10px 0 12px">
+    <div class="st"><div class="v" style="font-size:17px">3,4</div><div class="l">km/h</div></div>
+    <div class="st"><div class="v" style="font-size:17px">1.106</div><div class="l">m de altitud</div></div>
+    <div class="st"><div class="v" style="font-size:17px">↑ 412</div><div class="l">m subidos</div></div>
+    <div class="st"><div class="v" style="font-size:17px">1,3</div><div class="l">km a Los Hornillos</div></div>
+   </div>
+   <div style="display:flex;gap:12px"><div class="btn b2 big" style="flex:1"><span class="ms f">pause</span>Pausar</div><div class="btn bdanger big" style="flex:1"><span class="ms f">stop</span>Finalizar</div></div>
+  </div>
+  <div class="gest" style="background:#fff"><i></i></div>
+ </div></div><div class="cap">Navegación activa<small>Estado, desvío y lo que falta, de un vistazo</small></div></div>
+
+ <div><div class="phone" id="s-pausa"><div class="scr">
+  <div style="position:absolute;inset:0 0 300px 0"><canvas class="map" data-view="nav" data-dim="1"></canvas></div>
+  <div class="sb" style="background:linear-gradient(rgba(255,255,255,.85),rgba(255,255,255,0))"><span>9:41</span><span><span class="ms">signal_cellular_alt</span> <span class="ms">battery_4_bar</span></span></div>
+  <div style="position:relative;z-index:2;display:flex;justify-content:space-between;align-items:center;padding:4px 14px">
+   <span class="pill-state" style="background:var(--aviso-bg);color:#6B4100;box-shadow:0 2px 10px rgba(0,0,0,.12)"><span class="ms f" style="font-size:18px">pause_circle</span>En pausa</span>
+  </div>
+  <div style="flex:1"></div>
+  <div class="sheet" style="z-index:2;padding-bottom:6px">
+   <div class="handle"></div>
+   <div style="display:flex;justify-content:space-between;align-items:flex-end">
+    <div><div style="font:600 13px Inter;color:var(--texto2)">Te falta</div><div style="font:800 40px Montserrat;letter-spacing:-1px;line-height:1.05;color:#5C6A65" class="num">7,4 <span style="font-size:20px;font-weight:700">km</span></div></div>
+    <div style="text-align:right"><div style="font:700 26px Inter;color:#5C6A65" class="num">2:51:08</div><div style="font-size:12.5px;color:var(--texto2)">tiempo detenido</div></div>
+   </div>
+   <svg class="ridge" data-h="58" data-mode="progress" data-cursor="0.507" data-dim="1" style="display:block;width:100%;height:58px;margin-top:10px"></svg>
+   <div class="banner bi" style="margin:12px 0"><span class="ms">battery_saver</span><div>Mientras está en pausa, Cumbre no usa el GPS para ahorrar batería.</div></div>
+   <div style="display:flex;gap:12px"><div class="btn b1 big" style="flex:1.3"><span class="ms f">play_arrow</span>Reanudar</div><div class="btn bdanger big" style="flex:1"><span class="ms f">stop</span>Finalizar</div></div>
+  </div>
+  <div class="gest" style="background:#fff"><i></i></div>
+ </div></div><div class="cap">En pausa<small>Estado claro y acción principal: reanudar</small></div></div>
+
+ <div><div class="phone" id="s-fin"><div class="scr">
+  <div style="position:relative;height:300px;flex:none"><canvas class="map" data-view="fin"></canvas>
+   <div class="sb" style="position:absolute;left:0;right:0;top:0;background:linear-gradient(rgba(255,255,255,.85),rgba(255,255,255,0))"><span>9:41</span><span><span class="ms">signal_cellular_alt</span> <span class="ms">battery_3_bar</span></span></div>
+   <div style="position:absolute;left:14px;top:42px"><span class="pill-state" style="background:var(--ok-bg);color:var(--ok);box-shadow:0 2px 10px rgba(0,0,0,.12)"><span class="ms f" style="font-size:18px">check_circle</span>Recorrido finalizado</span></div>
+  </div>
+  <div style="flex:1;overflow:hidden;padding:18px 18px 0">
+   <div style="font:700 22px Montserrat;line-height:1.2">¡Llegaste! Cascada de los Cóndores</div>
+   <div style="font-size:13.5px;color:var(--texto2);margin-top:4px">Domingo 26 de octubre, 8:14 a 14:21</div>
+   <div class="stats" style="grid-template-columns:repeat(3,1fr);margin-top:16px">
+    <div class="st"><div class="v">15,1<small>km</small></div><div class="l">Distancia</div></div>
+    <div class="st"><div class="v">5:41</div><div class="l">En movimiento</div></div>
+    <div class="st"><div class="v">2,7<small>km/h</small></div><div class="l">Vel. media</div></div>
+    <div class="st"><div class="v">839<small>m</small></div><div class="l">Desnivel + est.</div></div>
+    <div class="st"><div class="v">1.128<small>m</small></div><div class="l">Altitud máx.</div></div>
+    <div class="st"><div class="v">3.214</div><div class="l">Puntos GPS</div></div>
+   </div>
+   <div class="sect">Tu perfil</div>
+   <svg class="ridge" data-h="90" data-mode="chart" style="display:block;width:100%;height:90px"></svg>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:10px;padding:12px 18px 10px"><div style="display:flex;gap:10px"><div class="btn b2" style="flex:1"><span class="ms">download</span>Exportar GPX</div><div class="btn b2" style="flex:1"><span class="ms">share</span>Compartir</div></div><div class="btn b1"><span class="ms">bookmark_add</span>Guardar en Mis rutas</div></div>
+  <div class="gest"><i></i></div>
+ </div></div><div class="cap">Finalizada<small>Resumen y acciones para guardar o compartir</small></div></div>
+</section>
+
+<!-- ======================= 05 · MAPAS OFFLINE Y AJUSTES ======================= -->
+<section class="board" id="b-offline" style="flex-wrap:wrap">
+ <div class="bh"><h1>Mapas sin conexión y ajustes</h1><p>Cada mapa muestra un solo estado claro: disponible sin conexión, importando (con progreso real), sin espacio o con error. Lo que se baja de Internet lo dice: se descarga en el navegador y después se instala.</p></div>
+ <div><div class="phone" id="s-offline"><div class="scr">
+  <div class="top"><div class="sb" style="padding:0 6px"><span>9:41</span><span><span class="ms">signal_cellular_alt</span> <span class="ms">battery_5_bar</span></span></div>
+   <div class="row1"><div style="display:flex;align-items:center;gap:6px"><div class="ib" style="margin-left:-10px"><span class="ms">arrow_back</span></div><h2 style="font-size:21px">Mapas sin conexión</h2></div></div></div>
+  <div style="flex:1;overflow:hidden;padding:14px 18px 0">
+   <div class="card" style="padding:14px 16px">
+    <div style="display:flex;justify-content:space-between;font-size:13.5px"><span style="color:var(--texto2)">Espacio en el teléfono</span><b class="num">2,1 GB libres</b></div>
+    <div style="height:10px;border-radius:5px;background:#E3EAE6;margin-top:10px;display:flex;overflow:hidden"><i style="width:22%;background:var(--bosque)"></i><i style="width:3%;background:#7FB394"></i></div>
+    <div style="display:flex;gap:16px;margin-top:8px;font-size:12px;color:var(--texto2)"><span><i class="dot" style="display:inline-block;width:8px;height:8px;background:var(--bosque)"></i> Mapas 829 MB</span><span><i class="dot" style="display:inline-block;width:8px;height:8px;background:#7FB394"></i> Relieve 58 MB</span></div>
+   </div>
+   <div class="sect">Instalados</div>
+   <div class="card" style="padding:4px 0">
+    <div class="list-row"><div class="ico"><span class="ms f">map</span></div><div style="flex:1"><div style="font:600 15px Inter">Córdoba</div><div style="font-size:12.5px;color:var(--texto2);margin-top:2px">287 MB, datos de septiembre 2026</div><span class="tag t-ok" style="margin-top:6px"><span class="ms f">offline_pin</span>Disponible sin conexión</span></div><span class="ms" style="color:var(--texto2)">more_vert</span></div>
+    <div class="list-row"><div class="ico"><span class="ms">map</span></div><div style="flex:1"><div style="font:600 15px Inter">Argentina</div><div style="font-size:12.5px;color:var(--texto2);margin-top:2px">Importando 347 de 542 MB</div><div class="progress" style="margin-top:8px"><i style="width:64%"></i></div></div><span class="ms" style="color:var(--texto2)">close</span></div>
+    <div class="list-row"><div class="ico" style="background:#E9EFEC"><span class="ms">landscape</span></div><div style="flex:1"><div style="font:600 15px Inter">Relieve: Sierras de Córdoba</div><div style="font-size:12.5px;color:var(--texto2);margin-top:2px">6 zonas, 58 MB</div></div><div class="sw"></div></div>
+   </div>
+   <div class="banner be" style="margin-top:12px"><span class="ms">sd_card_alert</span><div><b>No hay espacio para «Patagonia»</b>Necesita 610 MB y quedan 310 MB. Liberá espacio o eliminá un mapa que no uses.</div></div>
+   <div class="sect">Para descargar</div>
+   <div class="card" style="padding:4px 0">
+    <div class="list-row"><div class="ico" style="background:#E8EEF7;color:#1F4F8F"><span class="ms">public</span></div><div style="flex:1"><div style="font:600 15px Inter">Mapas listos para Cumbre</div><div style="font-size:12.5px;color:var(--texto2);margin-top:2px">Se descargan con el navegador; necesitan Internet</div></div><span class="ms" style="color:var(--texto2)">open_in_new</span></div>
+   </div>
+  </div>
+  <div style="padding:12px 18px 10px"><div class="btn b1"><span class="ms">add</span>Instalar archivo .map o relieve</div></div>
+  <div class="gest"><i></i></div>
+ </div></div><div class="cap">Mapas sin conexión<small>Instalado, importando, sin espacio y para descargar</small></div></div>
+
+ <div><div class="phone" id="s-ajustes"><div class="scr">
+  <div class="top"><div class="sb" style="padding:0 6px"><span>9:41</span><span><span class="ms">signal_cellular_alt</span> <span class="ms">battery_5_bar</span></span></div>
+   <div class="row1"><h2>Ajustes</h2></div></div>
+  <div style="flex:1;overflow:hidden;padding:4px 18px 0">
+   <div class="sect">Apariencia</div>
+   <div class="seg"><div><span class="ms" style="font-size:19px">brightness_auto</span>Sistema</div><div class="on"><span class="ms" style="font-size:19px">light_mode</span>Claro</div><div><span class="ms" style="font-size:19px">dark_mode</span>Oscuro</div></div>
+   <div class="sect">Mapa</div>
+   <div class="card">
+    <div class="list-row"><div class="ico"><span class="ms">palette</span></div><div style="flex:1"><div style="font:500 15px Inter">Estilo del mapa</div><div style="font-size:12.5px;color:var(--texto2)">Cumbre (senderos destacados)</div></div><span class="ms" style="color:var(--texto2)">chevron_right</span></div>
+    <div class="list-row"><div class="ico"><span class="ms">landscape</span></div><div style="flex:1"><div style="font:500 15px Inter">Mostrar relieve</div><div style="font-size:12.5px;color:var(--texto2)">Sombreado de montañas</div></div><div class="sw"></div></div>
+   </div>
+   <div class="sect">Navegación</div>
+   <div class="card">
+    <div class="list-row"><div class="ico"><span class="ms">vibration</span></div><div style="flex:1"><div style="font:500 15px Inter">Aviso de desvío</div><div style="font-size:12.5px;color:var(--texto2)">Vibra si te alejás del track</div></div><div class="sw"></div></div>
+    <div style="display:flex;gap:8px;padding:0 16px 14px 70px"><span class="chip">25 m</span><span class="chip on">50 m</span><span class="chip">100 m</span><span class="chip">200 m</span></div>
+    <div class="list-row"><div class="ico"><span class="ms">light_mode</span></div><div style="flex:1"><div style="font:500 15px Inter">Pantalla siempre encendida</div><div style="font-size:12.5px;color:var(--texto2)">Mientras grabás; usa más batería</div></div><div class="sw off"></div></div>
+   </div>
+   <div class="sect">Permisos</div>
+   <div class="card">
+    <div class="list-row"><div class="ico" style="background:var(--ok-bg);color:var(--ok)"><span class="ms f">location_on</span></div><div style="flex:1"><div style="font:500 15px Inter">Ubicación precisa</div><div style="font-size:12.5px;color:var(--ok)">Concedida</div></div><span class="ms" style="color:var(--texto2)">chevron_right</span></div>
+    <div class="list-row"><div class="ico" style="background:var(--aviso-bg);color:var(--aviso)"><span class="ms">notifications_off</span></div><div style="flex:1"><div style="font:500 15px Inter">Notificaciones</div><div style="font-size:12.5px;color:var(--aviso)">Desactivadas: sin avisos de desvío</div></div><span class="ms" style="color:var(--texto2)">chevron_right</span></div>
+   </div>
+  </div>
+  <div class="nav"><div><div class="pill"><span class="ms">home</span></div>Inicio</div><div><div class="pill"><span class="ms">map</span></div>Mapa</div><div><div class="pill"><span class="ms">route</span></div>Rutas</div><div><div class="pill"><span class="ms">hiking</span></div>Actividad</div><div class="on"><div class="pill"><span class="ms">more_horiz</span></div>Más</div></div>
+  <div class="gest" style="background:#fff"><i></i></div>
+ </div></div><div class="cap">Ajustes<small>Agrupados por tema, con el estado de cada permiso</small></div></div>
+
+ <div><div class="phone" id="s-inicio-oscuro"><div class="scr dark" style="background:#0E1614;color:#E8F0EC">
+  <div class="sb"><span>9:41</span><span><span class="ms">signal_cellular_alt</span> <span class="ms">battery_5_bar</span></span></div>
+  <div style="flex:1;overflow:hidden;padding:4px 18px 0">
+   <div style="display:flex;align-items:center;justify-content:space-between;margin:6px 0 16px">
+    <div style="display:flex;align-items:center;gap:10px"><img src="icono-v2.svg" width="34" style="border-radius:10px"><span style="font:800 23px Montserrat;color:#CFE8DA">Cumbre</span></div>
+    <span class="tag" style="height:30px;padding:0 11px;border-radius:15px;background:#173A2C;color:#BEEBD1"><span class="ms">cloud_off</span>Listo sin conexión</span>
+   </div>
+   <div style="background:#16302B;border-radius:24px;overflow:hidden;box-shadow:inset 0 0 0 1px #24493F">
+    <div style="padding:16px 18px 0">
+     <div style="font:500 13px Inter;color:#9FC1B2">Seguí donde quedaste</div>
+     <div style="font:700 20px Montserrat;margin-top:3px;line-height:1.2">Cascada de los Cóndores y Los Hornillos</div>
+     <div style="display:flex;gap:22px;margin-top:12px">
+      <div><div style="font:700 19px Inter" class="num">15,0 <small style="font-size:13px;color:#9FC1B2">km</small></div><div style="font-size:12px;color:#9FC1B2">Distancia</div></div>
+      <div><div style="font:700 19px Inter" class="num">823 <small style="font-size:13px;color:#9FC1B2">m</small></div><div style="font-size:12px;color:#9FC1B2">Desnivel +</div></div>
+      <div><div style="font:700 19px Inter" class="num">6 h 16</div><div style="font-size:12px;color:#9FC1B2">Estimado</div></div>
+     </div>
+    </div>
+    <svg class="ridge" data-h="104" data-mode="hero" data-dark="1" style="display:block;width:100%;height:104px;margin-top:6px"></svg>
+    <div style="display:flex;gap:10px;padding:0 18px 16px;margin-top:-4px;position:relative">
+     <div class="btn bacc" style="flex:1.3"><span class="ms f">navigation</span>Iniciar</div>
+     <div class="btn" style="flex:1;background:rgba(255,255,255,.1);color:#fff">Ver ruta</div>
+    </div>
+   </div>
+   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px">
+    <div style="background:#16201E;border-radius:20px;padding:14px 12px;box-shadow:inset 0 0 0 1px #24302D"><div class="ico" style="background:#24493F;color:#CFE8DA"><span class="ms">upload_file</span></div><div style="font:600 14px Inter;margin-top:10px">Importar GPX</div><div style="font-size:12px;color:#9DAAA5;margin-top:2px">De Wikiloc o archivo</div></div>
+    <div style="background:#16201E;border-radius:20px;padding:14px 12px;box-shadow:inset 0 0 0 1px #24302D"><div class="ico" style="background:#4A1F1C;color:#FFB4AB"><span class="ms f">radio_button_checked</span></div><div style="font:600 14px Inter;margin-top:10px">Grabar</div><div style="font-size:12px;color:#9DAAA5;margin-top:2px">Actividad libre</div></div>
+    <div style="background:#16201E;border-radius:20px;padding:14px 12px;box-shadow:inset 0 0 0 1px #24302D"><div class="ico" style="background:#24493F;color:#CFE8DA"><span class="ms">download_for_offline</span></div><div style="font:600 14px Inter;margin-top:10px">Mapas</div><div style="font-size:12px;color:#9DAAA5;margin-top:2px">2 instalados</div></div>
+   </div>
+   <div class="sect" style="color:#E8F0EC">Rutas recientes</div>
+   <div style="display:flex;gap:12px">
+    <div style="width:200px;flex:none;overflow:hidden;background:#16201E;border-radius:20px;box-shadow:inset 0 0 0 1px #24302D"><canvas class="mini" data-route="b" data-dark="1" width="400" height="200" style="width:100%;height:100px;display:block"></canvas><div style="padding:10px 12px 12px"><div style="font:600 14px Inter">Cerro Uritorco</div><div style="display:flex;gap:12px;margin-top:6px;font:600 13px Inter" class="num"><span>9,6 km</span><span style="color:#6FCF97">↑ 1.010 m</span></div></div></div>
+    <div style="width:200px;flex:none;overflow:hidden;background:#16201E;border-radius:20px;box-shadow:inset 0 0 0 1px #24302D"><canvas class="mini" data-route="c" data-dark="1" width="400" height="200" style="width:100%;height:100px;display:block"></canvas><div style="padding:10px 12px 12px"><div style="font:600 14px Inter">Quebrada del Condorito</div><div style="display:flex;gap:12px;margin-top:6px;font:600 13px Inter" class="num"><span>11,2 km</span><span style="color:#6FCF97">↑ 486 m</span></div></div></div>
+   </div>
+  </div>
+  <div class="nav" style="background:#141D1B;border-color:#24302D"><div class="on" style="color:#CFE8DA"><div class="pill" style="background:#24493F"><span class="ms">home</span></div>Inicio</div><div style="color:#9DAAA5"><div class="pill"><span class="ms">map</span></div>Mapa</div><div style="color:#9DAAA5"><div class="pill"><span class="ms">route</span></div>Rutas</div><div style="color:#9DAAA5"><div class="pill"><span class="ms">hiking</span></div>Actividad</div><div style="color:#9DAAA5"><div class="pill"><span class="ms">more_horiz</span></div>Más</div></div>
+  <div class="gest" style="background:#141D1B"><i style="background:#fff"></i></div>
+ </div></div><div class="cap">Inicio en modo oscuro<small>Misma jerarquía; superficies verde noche</small></div></div>
+</section>
+
+<!-- ======================= 06 · ESTADOS ======================= -->
+<section class="board" id="b-estados" style="flex-wrap:wrap">
+ <div class="bh"><h1>Estados importantes</h1><p>Cuando falta algo, la pantalla explica la situación en una frase y ofrece la acción que la resuelve. Cumbre funciona sin Internet; lo que puede faltar es el mapa de la zona, y eso se dice con claridad.</p></div>
+ <div><div class="phone" id="s-vacio"><div class="scr">
+  <div class="top"><div class="sb" style="padding:0 6px"><span>9:41</span><span><span class="ms">signal_cellular_alt</span> <span class="ms">battery_5_bar</span></span></div>
+   <div class="row1"><h2>Rutas</h2></div></div>
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;padding:70px 30px 0">
+   <svg width="230" height="130" viewBox="0 0 230 130"><path d="M0 120 L40 82 L62 96 L104 34 L132 72 L150 58 L190 104 L230 90 L230 130 L0 130Z" fill="#DDEBE3"/><path d="M104 34 L132 72 L124 76 L114 64 L104 86Z" fill="#C9DDD2"/><path d="M58 126 C80 110 96 116 104 100 C112 84 98 76 108 62 C112 56 112 48 106 40" fill="none" stroke="#267D5B" stroke-width="4" stroke-linecap="round" stroke-dasharray="1 10"/><path d="M104 2 C96 2 90 8 90 16 C90 26 104 36 104 36 C104 36 118 26 118 16 C118 8 112 2 104 2Z" fill="#FF8A00"/><circle cx="104" cy="16" r="5" fill="#fff"/></svg>
+   <div style="font:700 21px Montserrat;margin-top:26px">Tu primera ruta te espera</div>
+   <div style="font-size:15px;color:var(--texto2);line-height:1.5;margin-top:10px;max-width:300px">Importá un GPX de Wikiloc o de un amigo. Cumbre lo prepara para seguirlo con GPS, sin señal.</div>
+   <div class="btn b1" style="margin-top:28px;width:100%"><span class="ms">upload_file</span>Importar GPX</div>
+   <div class="btn b2" style="margin-top:10px;width:100%"><span class="ms">help</span>Cómo traer rutas de Wikiloc</div>
+  </div>
+  <div class="nav"><div><div class="pill"><span class="ms">home</span></div>Inicio</div><div><div class="pill"><span class="ms">map</span></div>Mapa</div><div class="on"><div class="pill"><span class="ms">route</span></div>Rutas</div><div><div class="pill"><span class="ms">hiking</span></div>Actividad</div><div><div class="pill"><span class="ms">more_horiz</span></div>Más</div></div>
+  <div class="gest" style="background:#fff"><i></i></div>
+ </div></div><div class="cap">Sin rutas guardadas<small>Invitación a importar la primera ruta</small></div></div>
+
+ <div><div class="phone" id="s-permiso"><div class="scr">
+  <div style="position:absolute;inset:0 0 98px 0"><canvas class="map" data-view="mapa" data-nopos="1"></canvas></div>
+  <div style="position:absolute;inset:0;background:rgba(10,25,22,.45);z-index:3"></div>
+  <div class="sb" style="z-index:4;color:#fff"><span>9:41</span><span><span class="ms">signal_cellular_alt</span> <span class="ms">battery_5_bar</span></span></div>
+  <div style="flex:1"></div>
+  <div style="position:relative;z-index:4;background:#fff;border-radius:28px 28px 0 0;padding:12px 22px 18px">
+   <div class="handle"></div>
+   <div style="width:64px;height:64px;border-radius:20px;background:#FFE8CC;display:flex;align-items:center;justify-content:center;margin-top:6px"><span class="ms f" style="font-size:34px;color:#B35F00">location_on</span></div>
+   <div style="font:700 21px Montserrat;margin-top:16px">Activá tu ubicación para seguir la ruta</div>
+   <div style="font-size:15px;color:var(--texto2);line-height:1.5;margin-top:8px">Cumbre usa el GPS del teléfono para mostrarte dónde estás, aunque no haya señal de celular. Tus recorridos no salen del teléfono.</div>
+   <div class="card" style="margin-top:16px;padding:4px 0;box-shadow:inset 0 0 0 1px #E1E8E4">
+    <div class="list-row"><span class="ms" style="color:var(--bosque)">my_location</span><div style="font-size:14px">Elegí <b>Ubicación precisa</b>: la aproximada no alcanza en un sendero</div></div>
+    <div class="list-row"><span class="ms" style="color:var(--bosque)">schedule</span><div style="font-size:14px">Solo mientras usás la app o grabás un recorrido</div></div>
+   </div>
+   <div class="btn b1 big" style="margin-top:18px"><span class="ms">location_on</span>Permitir ubicación</div>
+   <div class="btn" style="margin-top:6px;color:var(--montana)">Ahora no</div>
+  </div>
+  <div class="nav" style="position:relative;z-index:4"><div><div class="pill"><span class="ms">home</span></div>Inicio</div><div class="on"><div class="pill"><span class="ms">map</span></div>Mapa</div><div><div class="pill"><span class="ms">route</span></div>Rutas</div><div><div class="pill"><span class="ms">hiking</span></div>Actividad</div><div><div class="pill"><span class="ms">more_horiz</span></div>Más</div></div>
+  <div class="gest" style="background:#fff;position:relative;z-index:4"><i></i></div>
+ </div></div><div class="cap">Sin permiso de GPS<small>Se explica antes del diálogo de Android</small></div></div>
+
+ <div><div class="phone" id="s-sinmapa"><div class="scr">
+  <div style="position:absolute;inset:0 0 98px 0"><canvas class="map" data-view="mapa" data-blank="1"></canvas></div>
+  <div class="sb"><span>9:41</span><span><span class="ms">signal_cellular_off</span> <span class="ms">battery_5_bar</span></span></div>
+  <div style="position:relative;z-index:2;display:flex;justify-content:space-between;padding:6px 14px">
+   <span class="capsule"><span class="ms f" style="color:#2E7D32">gps_fixed</span>GPS ±6 m</span>
+   <span class="capsule" style="color:#6E1814"><span class="ms" style="color:var(--error)">wifi_off</span>Sin conexión</span>
+  </div>
+  <div style="position:relative;z-index:2;margin:8px 14px 0" class="banner bw"><span class="ms">map</span><div><b>No hay mapa instalado para esta zona</b>Igual ves tu ruta y tu posición. Instalá el mapa la próxima vez que tengas Wi-Fi.</div></div>
+  <div style="position:absolute;right:14px;bottom:200px;z-index:2;display:flex;flex-direction:column;gap:12px;align-items:flex-end">
+   <div class="ctl group"><span><span class="ms">add</span></span><span><span class="ms">remove</span></span></div>
+   <div class="ctl" style="background:var(--naranja);color:#1E1E1E"><span class="ms f">my_location</span></div>
+  </div>
+  <div style="flex:1"></div>
+  <div class="sheet" style="z-index:2"><div class="handle"></div>
+   <div style="display:flex;gap:10px"><div class="btn b2" style="flex:1"><span class="ms">download_for_offline</span>Ver mapas</div><div class="btn b1" style="flex:1.2"><span class="ms f">navigation</span>Seguir ruta</div></div>
+  </div>
+  <div class="nav"><div><div class="pill"><span class="ms">home</span></div>Inicio</div><div class="on"><div class="pill"><span class="ms">map</span></div>Mapa</div><div><div class="pill"><span class="ms">route</span></div>Rutas</div><div><div class="pill"><span class="ms">hiking</span></div>Actividad</div><div><div class="pill"><span class="ms">more_horiz</span></div>Más</div></div>
+  <div class="gest" style="background:#fff"><i></i></div>
+ </div></div><div class="cap">Sin conexión y sin mapa de la zona<small>Track y GPS siguen funcionando</small></div></div>
+</section>
+
+<script>
+/* ======================= Terreno y mapa ======================= */
+function rng(seed){let s=seed>>>0;return()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296}}
+const R=rng(42),G=[];for(let i=0;i<512;i++)G.push(R());
+function vn(x,y){const xi=Math.floor(x),yi=Math.floor(y),xf=x-xi,yf=y-yi;const h=(a,b)=>G[((a*73856093)^(b*19349663))&511];const s=t=>t*t*(3-2*t);const u=s(xf),v=s(yf);
+ return (h(xi,yi)*(1-u)+h(xi+1,yi)*u)*(1-v)+(h(xi,yi+1)*(1-u)+h(xi+1,yi+1)*u)*v}
+function fbm(x,y){let a=0,f=1,amp=.5;for(let i=0;i<5;i++){a+=amp*vn(x*f,y*f);f*=2.03;amp*=.5}return a}
+const W=900,H=1300;
+function height(x,y){ // 0..1
+ let h=fbm(x/230,y/230)*0.55;
+ h+=0.55*Math.exp(-((x-330)**2/(2*170**2))-((y-430)**2/(2*260**2))); // macizo central
+ h+=0.25*Math.exp(-((x-200)**2/(2*90**2))-((y-280)**2/(2*90**2)));
+ h-=0.38*Math.max(0,(x-560)/340); // llanura hacia el pueblo
+ h-=0.18*Math.exp(-((y-560)**2/(2*40**2)))*Math.max(0,(x-380)/500); // valle del río
+ return h}
+let hmin=1e9,hmax=-1e9;const HF=new Float32Array(W*H);
+for(let y=0;y<H;y++)for(let x=0;x<W;x++){const v=height(x,y);HF[y*W+x]=v;if(v<hmin)hmin=v;if(v>hmax)hmax=v}
+const hn=(x,y)=>{x=Math.max(0,Math.min(W-1,x|0));y=Math.max(0,Math.min(H-1,y|0));return (HF[y*W+x]-hmin)/(hmax-hmin)};
+const meters=v=>620+v*620;
+
+// Lago y río (coordenadas de mundo)
+const lake=[[600,520],[640,500],[690,505],[720,530],[700,560],[650,566],[615,552]];
+const river=[[700,545],[760,560],[820,600],[900,640]];
+const river2=[[600,530],[520,560],[440,610],[380,680],[330,760],[300,860]];
+// Ruta principal (bucle en sentido horario, similar a la del usuario)
+const routeA=[[652,498],[600,512],[548,526],[500,548],[455,585],[410,628],[360,660],[300,690],[250,672],[215,630],[198,560],[190,480],[176,400],[170,330],[186,270],[228,240],[290,236],[350,248],[405,262],[452,290],[500,330],[546,372],[590,420],[628,462],[652,498]];
+function smoothPath(p,n=6){const out=[];for(let i=0;i<p.length-1;i++){const a=p[Math.max(0,i-1)],b=p[i],c=p[i+1],d=p[Math.min(p.length-1,i+2)];for(let t=0;t<n;t++){const s=t/n,s2=s*s,s3=s2*s;out.push([0.5*((2*b[0])+(-a[0]+c[0])*s+(2*a[0]-5*b[0]+4*c[0]-d[0])*s2+(-a[0]+3*b[0]-3*c[0]+d[0])*s3),0.5*((2*b[1])+(-a[1]+c[1])*s+(2*a[1]-5*b[1]+4*c[1]-d[1])*s2+(-a[1]+3*b[1]-3*c[1]+d[1])*s3)])}}out.push(p[p.length-1]);
+ // pequeñas sinuosidades de sendero
+ return out.map(([x,y],i)=>[x+Math.sin(i*1.7)*3,y+Math.cos(i*1.3)*3])}
+const RA=smoothPath(routeA,8);
+const cum=[0];for(let i=1;i<RA.length;i++)cum.push(cum[i-1]+Math.hypot(RA[i][0]-RA[i-1][0],RA[i][1]-RA[i-1][1]));
+const total=cum[cum.length-1];
+const raw=RA.map(p=>hn(p[0],p[1]));const rlo=Math.min(...raw),rhi=Math.max(...raw);
+const prof=RA.map((p,i)=>[cum[i]/total,786+(raw[i]-rlo)/(rhi-rlo)*345]);
+const pmin=Math.min(...prof.map(p=>p[1])),pmax=Math.max(...prof.map(p=>p[1]));
+const summitIdx=prof.reduce((bi,p,i)=>p[1]>prof[bi][1]?i:bi,0);
+function pointAtFrac(f){const d=f*total;let i=cum.findIndex(c=>c>=d);if(i<=0)return RA[0];const t=(d-cum[i-1])/(cum[i]-cum[i-1]);return [RA[i-1][0]+t*(RA[i][0]-RA[i-1][0]),RA[i-1][1]+t*(RA[i][1]-RA[i-1][1])]}
+const waypoints=[{f:0.31,n:"Cascada de los Cóndores"},{f:0.55,n:"Los Hornillos"},{f:0.80,n:"Mirador"}];
+
+// Render del mundo (2 px por unidad)
+const S=2;const world=document.createElement('canvas');world.width=W*S;world.height=H*S;
+(function(){const c=world.getContext('2d');const img=c.createImageData(W*S,H*S);const d=img.data;
+ for(let py=0;py<H*S;py++)for(let px=0;px<W*S;px++){const x=px/S,y=py/S;const h=hn(x,y);
+  const dx=hn(x+1,y)-hn(x-1,y),dy=hn(x,y+1)-hn(x,y-1);
+  let shade=0.5+(-dx*0.75-dy*0.55)*20; shade=Math.max(0,Math.min(1,shade));
+  const forest=fbm(x/60+40,y/60+11)>0.52&&h>0.18&&h<0.85;
+  let r,g,b;
+  if(forest){r=204;g=226;b=196}else if(h>0.78){r=236;g=232;b=220}else{r=240;g=241;b=230}
+  const k=0.72+0.5*shade; r*=k;g*=k;b*=k;
+  // curvas de nivel
+  const lv=h*36,frac=lv-Math.floor(lv); const lvR=hn(x+0.7,y)*36,lvD=hn(x,y+0.7)*36;
+  if(Math.floor(lv)!==Math.floor(lvR)||Math.floor(lv)!==Math.floor(lvD)){const idx=Math.floor(Math.max(lv,lvR,lvD))%5===0;r=r*(idx?.72:.86);g=g*(idx?.68:.84);b=b*(idx?.58:.78)}
+  const o=(py*W*S+px)*4;d[o]=Math.min(255,r);d[o+1]=Math.min(255,g);d[o+2]=Math.min(255,b);d[o+3]=255}
+ c.putImageData(img,0,0);c.scale(S,S);
+ const line=(pts,col,w,dash)=>{c.beginPath();pts.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y));c.strokeStyle=col;c.lineWidth=w;c.setLineDash(dash||[]);c.lineCap='round';c.lineJoin='round';c.stroke();c.setLineDash([])};
+ // pueblo (manzanas)
+ c.save();c.beginPath();c.moveTo(700,380);c.lineTo(900,360);c.lineTo(900,780);c.lineTo(720,760);c.lineTo(690,600);c.closePath();c.fillStyle='rgba(232,226,214,.85)';c.fill();c.clip();
+ for(let gx=690;gx<900;gx+=22)line([[gx,350],[gx+8,790]],'#fff',3.2);for(let gy=360;gy<800;gy+=20)line([[690,gy],[900,gy-6]],'#fff',3.2);c.restore();
+ // agua
+ c.beginPath();lake.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y));c.closePath();c.fillStyle='#AFD3EE';c.fill();c.strokeStyle='#8FBFE3';c.lineWidth=1.2;c.stroke();
+ line(smoothPath(river,6),'#9CC9EA',4);line(smoothPath(river2,6),'#9CC9EA',3);
+ // rutas viales
+ const road=smoothPath([[900,300],[780,330],[700,380],[640,470],[660,500]],6);line(road,'#B7A77A',7.5);line(road,'#F7D774',5.5);
+ const road2=smoothPath([[640,470],[560,440],[470,420],[380,380],[300,300],[230,200],[180,60]],6);line(road2,'#A9A9A9',5);line(road2,'#FFFFFF',3.4);
+ // senderos
+ line(smoothPath([[300,690],[260,760],[240,860],[200,980]],6),'#9A5B3A',1.6,[4,3]);
+ line(smoothPath([[176,400],[110,420],[60,470]],6),'#9A5B3A',1.6,[4,3]);
+ line(smoothPath([[405,262],[440,200],[470,120],[520,60]],6),'#9A5B3A',1.6,[4,3]);
+ // textos
+ c.font='600 13px Inter';c.fillStyle='#2E3A36';c.strokeStyle='rgba(255,255,255,.85)';c.lineWidth=3;
+ const txt=(t,x,y,s,col)=>{c.font=s;c.strokeText(t,x,y);c.fillStyle=col||'#2E3A36';c.fillText(t,x,y)};
+ txt('Río Ceballos',740,470,'700 15px Inter');txt('Dique La Quebrada',590,600,'italic 500 10.5px Inter','#2A6FA8');
+ txt('▲ Cerro Pan de Azúcar',290,330,'italic 500 10px Inter','#5C4A2A');txt('Colanchanga',120,215,'600 11px Inter');
+})();
+
+const views={mapa:{cx:486,cy:470,z:0.62},import:{cx:420,cy:470,z:0.58},detalle:{cx:420,cy:480,z:0.6},nav:{cx:0,cy:0,z:2.0},fin:{cx:420,cy:440,z:0.54}};
+const NAVPOS=(()=>{const [x,y]=pointAtFrac(0.507);return [x-20,y-14]})();views.nav.cx=NAVPOS[0]+18;views.nav.cy=NAVPOS[1]-10;
+function drawMap(cv){const v=views[cv.dataset.view];const r=cv.getBoundingClientRect();const dpr=2;cv.width=r.width*dpr;cv.height=r.height*dpr;const c=cv.getContext('2d');c.scale(dpr,dpr);
+ const Wc=r.width,Hc=r.height;const z=v.z;const tx=x=>(x-v.cx)*z+Wc/2,ty=y=>(y-v.cy)*z+Hc/2;
+ if(cv.dataset.blank){c.fillStyle='#F2F3EE';c.fillRect(0,0,Wc,Hc);c.strokeStyle='#E3E6DD';c.lineWidth=1;for(let i=0;i<Wc;i+=40){c.beginPath();c.moveTo(i,0);c.lineTo(i,Hc);c.stroke()}for(let i=0;i<Hc;i+=40){c.beginPath();c.moveTo(0,i);c.lineTo(Wc,i);c.stroke()}}
+ else{c.imageSmoothingQuality='high';c.drawImage(world,(v.cx-Wc/2/z)*S,(v.cy-Hc/2/z)*S,Wc/z*S,Hc/z*S,0,0,Wc,Hc)}
+ if(cv.dataset.dim){c.fillStyle='rgba(255,255,255,.28)';c.fillRect(0,0,Wc,Hc)}
+ const path=(pts)=>{c.beginPath();pts.forEach(([x,y],i)=>i?c.lineTo(tx(x),ty(y)):c.moveTo(tx(x),ty(y)))};
+ const tw=cv.dataset.view==='nav'?6.5:5;
+ path(RA);c.strokeStyle='rgba(255,255,255,.95)';c.lineWidth=tw+4;c.lineJoin='round';c.lineCap='round';c.stroke();
+ path(RA);c.strokeStyle='#D6247F';c.lineWidth=tw;c.stroke();
+ if(cv.dataset.view==='nav'||cv.dataset.view==='fin'){const n=cv.dataset.view==='fin'?RA.length:Math.round(RA.length*0.507);path(RA.slice(0,n));c.strokeStyle='#2F7DE1';c.lineWidth=3;c.setLineDash([2,6]);c.stroke();c.setLineDash([])}
+ // inicio / fin
+ const [sx,sy]=RA[0];c.fillStyle='#fff';c.beginPath();c.arc(tx(sx),ty(sy),11,0,7);c.fill();c.fillStyle='#267D5B';c.beginPath();c.arc(tx(sx),ty(sy),7.5,0,7);c.fill();
+ // waypoints con nombre
+ c.font='600 12px Inter';
+ waypoints.forEach(w=>{const [x,y]=pointAtFrac(w.f);const X=tx(x),Y=ty(y);if(X<-20||Y<-20||X>Wc+20||Y>Hc+20)return;c.fillStyle='#fff';c.beginPath();c.arc(X,Y,10,0,7);c.fill();c.strokeStyle='#0F403A';c.lineWidth=2;c.stroke();
+  c.strokeStyle='#0F403A';c.lineWidth=1.8;c.beginPath();c.moveTo(X-3,Y+5);c.lineTo(X-3,Y-5);c.stroke();c.fillStyle='#0F403A';c.beginPath();c.moveTo(X-3,Y-5);c.lineTo(X+5,Y-2.5);c.lineTo(X-3,Y);c.fill();
+  if(z>0.55){c.lineWidth=4;c.strokeStyle='rgba(255,255,255,.95)';c.strokeText(w.n,X+14,Y+4);c.fillStyle='#0F403A';c.fillText(w.n,X+14,Y+4)}});
+ // cumbre
+ const [mx,my]=RA[summitIdx];const MX=tx(mx),MY=ty(my);c.fillStyle='#1E1E1E';c.beginPath();c.moveTo(MX,MY-12);c.lineTo(MX+10,MY+6);c.lineTo(MX-10,MY+6);c.closePath();c.fill();c.strokeStyle='#fff';c.lineWidth=2;c.stroke();
+ c.font='700 12px Inter';c.lineWidth=4;c.strokeStyle='rgba(255,255,255,.95)';c.strokeText(Math.round(pmax).toLocaleString('es-AR')+' m',MX+13,MY+4);c.fillStyle='#1E1E1E';c.fillText(Math.round(pmax).toLocaleString('es-AR')+' m',MX+13,MY+4);
+ // cursor del perfil (importación)
+ if(cv.dataset.view==='import'){const [qx,qy]=pointAtFrac(0.2);const X=tx(qx),Y=ty(qy);c.fillStyle='rgba(47,125,225,.22)';c.beginPath();c.arc(X,Y,17,0,7);c.fill();c.fillStyle='#fff';c.beginPath();c.arc(X,Y,9,0,7);c.fill();c.fillStyle='#2F7DE1';c.beginPath();c.arc(X,Y,6.5,0,7);c.fill()}
+ // posición
+ if(!cv.dataset.nopos&&cv.dataset.view!=='fin'&&cv.dataset.view!=='import'&&cv.dataset.view!=='detalle'){let px,py,ang;
+  if(cv.dataset.view==='nav'){[px,py]=NAVPOS;ang=-35}else{px=520;py=650;ang=-50}
+  
+  const X=tx(px),Y=ty(py);const dim=cv.dataset.dim;
+  c.fillStyle='rgba(255,138,0,.16)';c.beginPath();c.arc(X,Y,30,0,7);c.fill();c.strokeStyle='rgba(255,138,0,.4)';c.lineWidth=1;c.stroke();
+  c.save();c.translate(X,Y);c.rotate(ang*Math.PI/180);c.beginPath();c.moveTo(0,-17);c.lineTo(11,11);c.lineTo(0,5);c.lineTo(-11,11);c.closePath();c.fillStyle=dim?'#9AA5A1':'#FF8A00';c.fill();c.strokeStyle='#fff';c.lineWidth=3;c.lineJoin='round';c.stroke();c.restore()}
+}
+/* ======================= Perfil (firma visual) ======================= */
+function ridge(svg){const w=svg.getBoundingClientRect().width,h=+svg.dataset.h,mode=svg.dataset.mode,dark=svg.dataset.dark,dim=svg.dataset.dim;
+ let pts=prof;if(svg.dataset.seed){const r=rng(+svg.dataset.seed);pts=prof.map(([f,m],i)=>[f,m+Math.sin(i/9)*60+r()*25])}
+ const lo=Math.min(...pts.map(p=>p[1])),hi=Math.max(...pts.map(p=>p[1]));
+ const top=mode==='chart'?18:mode==='progress'?16:mode==='hero'?26:4,bot=mode==='chart'?h-14:h;
+ const X=f=>f*w,Y=m=>bot-(m-lo)/(hi-lo||1)*(bot-top);
+ const d=pts.map(([f,m],i)=>(i?'L':'M')+X(f).toFixed(1)+' '+Y(m).toFixed(1)).join(' ');
+ const area=d+` L${w} ${h} L0 ${h} Z`;let s='';
+ const green=dark?'#6FCF97':'#267D5B';
+ if(mode==='hero'){s+=`<defs><linearGradient id="hg${dark||''}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${dark?'#2E6B57':'#2A7A5E'}"/><stop offset="1" stop-color="${dark?'#16302B':'#0F403A'}"/></linearGradient></defs><path d="${area}" fill="url(#hg${dark||''})"/><path d="${d}" fill="none" stroke="#A7C4B2" stroke-width="2"/>`;
+  const sf=prof[summitIdx][0];s+=`<path d="M${X(sf)} ${Y(hi)-14} l7 10 h-14 z" fill="#FF8A00"/><text x="${X(sf)+10}" y="${Y(hi)-5}" font-family="Inter" font-size="11.5" font-weight="700" fill="#fff">${Math.round(hi).toLocaleString('es-AR')} m</text>`}
+ else if(mode==='mini'){s+=`<path d="${area}" fill="#CFE2D7"/><path d="${d}" fill="none" stroke="${green}" stroke-width="1.6"/>`}
+ else if(mode==='strip'){s+=`<path d="${area}" fill="#E4EFE9"/><path d="${d}" fill="none" stroke="#9CC3AE" stroke-width="1.4"/>`}
+ else{ // chart / progress
+  const grid=dark?'#2A3532':'#DCE3E0',lab=dark?'#9DAAA5':'#5E6B66';
+  if(mode==='chart'){s+=`<line x1="0" x2="${w}" y1="${Y(hi)}" y2="${Y(hi)}" stroke="${grid}" stroke-dasharray="4 4"/><line x1="0" x2="${w}" y1="${bot}" y2="${bot}" stroke="${grid}"/>`}
+  s+=`<defs><linearGradient id="cg${mode}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${green}" stop-opacity=".38"/><stop offset="1" stop-color="${green}" stop-opacity=".04"/></linearGradient></defs>`;
+  const cur=svg.dataset.cursor?+svg.dataset.cursor:null;
+  if(mode==='progress'&&cur!=null){const done=pts.filter(p=>p[0]<=cur);const dd=done.map(([f,m],i)=>(i?'L':'M')+X(f).toFixed(1)+' '+Y(m).toFixed(1)).join(' ');
+   s+=`<path d="${area}" fill="${dim?'#E8ECEA':'#E4EFE9'}"/><path d="${d}" fill="none" stroke="${dim?'#B8C2BE':'#9CC3AE'}" stroke-width="1.6"/><path d="${dd} L${X(cur)} ${h} L0 ${h} Z" fill="${dim?'#C9D2CE':'url(#cg'+mode+')'}"/><path d="${dd}" fill="none" stroke="${dim?'#8A9792':'#2F7DE1'}" stroke-width="2.4"/>`}
+  else{s+=`<path d="${area.replace(` L${w} ${h} L0 ${h}`,` L${w} ${bot} L0 ${bot}`)}" fill="url(#cg${mode})"/><path d="${d}" fill="none" stroke="${green}" stroke-width="2"/>`}
+  // cumbre
+  const sf=prof[summitIdx][0];s+=`<path d="M${X(sf)} ${Y(hi)-11} l6.5 9 h-13 z" fill="${dark?'#E8F0EC':'#1E1E1E'}"/>`;
+  if(mode==='chart'){s+=`<text x="2" y="11" font-family="Inter" font-size="10" fill="${lab}">${Math.round(hi).toLocaleString('es-AR')} m</text><text x="2" y="${h-2}" font-family="Inter" font-size="10" fill="${lab}">${Math.round(lo).toLocaleString('es-AR')} m</text><text x="${w-2}" y="${h-2}" font-family="Inter" font-size="10" fill="${lab}" text-anchor="end">15,0 km</text>`}
+  if(cur!=null){const m=pts[Math.round(cur*(pts.length-1))][1];const cx=X(cur),cy=Y(m);
+   if(mode==='chart'){const tag=`${Math.round(m).toLocaleString('es-AR')} m · km ${(cur*15).toFixed(1).replace('.',',')}`;const tw=tag.length*6.3+14;const bx=Math.max(0,Math.min(w-tw,cx-tw/2));
+    s+=`<line x1="${cx}" x2="${cx}" y1="${top}" y2="${bot}" stroke="#2F7DE1" stroke-width="1.6"/><circle cx="${cx}" cy="${cy}" r="6.5" fill="#fff"/><circle cx="${cx}" cy="${cy}" r="4.6" fill="#2F7DE1"/><rect x="${bx}" y="0" width="${tw}" height="17" rx="4" fill="#2F7DE1"/><text x="${bx+7}" y="12.5" font-family="Inter" font-size="11" font-weight="600" fill="#fff">${tag}</text>`}
+   else{s+=`<circle cx="${cx}" cy="${cy}" r="8" fill="#fff"/><path d="M${cx} ${cy-6} l5 10 l-5 -3 l-5 3 z" fill="${dim?'#8A9792':'#FF8A00'}"/><text x="${X(sf)+9}" y="${Y(hi)-2}" font-family="Inter" font-size="10.5" font-weight="700" fill="#1E1E1E">cumbre en ${((sf-cur)*15).toFixed(1).replace('.',',')} km</text>`}}
+ }
+ svg.setAttribute('viewBox',`0 0 ${w} ${h}`);svg.innerHTML=s}
+/* ======================= Miniaturas de rutas ======================= */
+function mini(cv){const dark=cv.dataset.dark;const c=cv.getContext('2d');const which=cv.dataset.route;
+ const views2={a:[411,463,0.19],b:[300,300,0.9],c:[520,700,0.75]};const [cx,cy,z]=views2[which];const Wc=cv.width/2,Hc=cv.height/2;c.scale(2,2);
+ c.drawImage(world,(cx-Wc/2/z)*S,(cy-Hc/2/z)*S,Wc/z*S,Hc/z*S,0,0,Wc,Hc);
+ if(dark){c.fillStyle='rgba(10,20,18,.35)';c.fillRect(0,0,Wc,Hc)}
+ let pts;if(which==='a')pts=RA;else{const r=rng(which==='b'?3:9);let p=[[cx-60,cy+40]];for(let i=0;i<14;i++){const l=p[p.length-1];p.push([l[0]+8+r()*6,l[1]-4-r()*8+(which==='c'?6:0)])}pts=smoothPath(p,4)}
+ const tx=x=>(x-cx)*z+Wc/2,ty=y=>(y-cy)*z+Hc/2;
+ c.beginPath();pts.forEach(([x,y],i)=>i?c.lineTo(tx(x),ty(y)):c.moveTo(tx(x),ty(y)));c.strokeStyle='#fff';c.lineWidth=5;c.lineJoin='round';c.stroke();c.strokeStyle='#D6247F';c.lineWidth=3;c.stroke();
+ const s=pts[0],e=pts[pts.length-1];c.fillStyle='#fff';c.beginPath();c.arc(tx(s[0]),ty(s[1]),5,0,7);c.fill();c.fillStyle='#267D5B';c.beginPath();c.arc(tx(s[0]),ty(s[1]),3.4,0,7);c.fill()}
+
+document.fonts.ready.then(()=>{document.querySelectorAll('canvas.map').forEach(drawMap);document.querySelectorAll('svg.ridge').forEach(ridge);document.querySelectorAll('canvas.mini').forEach(mini);const ck=document.getElementById('cumbre-km');if(ck)ck.textContent='Cumbre, km '+(prof[summitIdx][0]*15).toFixed(1).replace('.',',');document.querySelectorAll('.cumbre-txt').forEach(e=>e.textContent='▲ Punto más alto: 1.131 m en el km '+(prof[summitIdx][0]*15).toFixed(1).replace('.',','));document.body.dataset.ready=1});
+</script>
+</body></html>

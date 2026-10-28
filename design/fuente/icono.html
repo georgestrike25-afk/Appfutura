@@ -1,0 +1,115 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800&display=block" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0&display=block" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,sans-serif;background:#E8ECEA;color:#1E1E1E;width:1720px;padding:48px}
+h1{font:800 34px Montserrat;color:#0F403A}
+.lead{font-size:16px;color:#4A5A55;margin:8px 0 36px;max-width:900px;line-height:1.5}
+h2{font:700 19px Montserrat;color:#0F403A;margin-bottom:6px}
+.sub{font-size:13.5px;color:#55615D;margin-bottom:18px;line-height:1.45}
+.row{display:flex;gap:28px;align-items:flex-start}
+.panel{background:#fff;border-radius:20px;padding:26px 28px}
+.ms{font-family:'Material Symbols Rounded';font-size:26px;line-height:1;display:inline-block}
+.cap{font:500 12.5px Inter;color:#55615D;text-align:center;margin-top:10px}
+.icon{display:block}
+.vs{display:flex;gap:40px;align-items:flex-end}
+.layer{position:relative;width:216px;height:216px;border-radius:6px;overflow:hidden;background:repeating-conic-gradient(#f0f0f0 0 25%,#fff 0 50%) 0 0/16px 16px}
+.layer img{width:100%;height:100%}
+.guides{position:absolute;inset:0}
+.masks{display:flex;gap:26px;align-items:flex-end}
+.m{display:flex;flex-direction:column;align-items:center}
+.sizes{display:flex;gap:20px;align-items:flex-end;margin-top:18px}
+.phone{width:412px;height:915px;border-radius:44px;background:#111;padding:11px;box-shadow:0 24px 60px rgba(0,0,0,.28)}
+.scr{width:100%;height:100%;border-radius:34px;overflow:hidden;position:relative;display:flex;flex-direction:column}
+.status{height:34px;display:flex;justify-content:space-between;align-items:center;padding:0 24px;font:600 13px Inter}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);row-gap:26px;padding:0 18px}
+.app{display:flex;flex-direction:column;align-items:center;gap:7px;font:500 12.5px Inter}
+.gi{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.dock{position:absolute;left:18px;right:18px;bottom:40px;height:84px;border-radius:30px;display:flex;justify-content:space-around;align-items:center}
+.search{margin:0 18px;height:56px;border-radius:28px;display:flex;align-items:center;padding:0 20px;gap:12px;font-size:15px}
+</style></head><body>
+<h1>Cumbre · icono, propuesta v2</h1>
+<p class="lead">Conserva la identidad aprobada: dos picos blancos, sendero verde claro, marcador GPS naranja y fondo verde profundo. La composición ahora se centra en el círculo seguro de Android, el pin marca la cumbre principal y el sendero sube hasta ella. Así se lee como «llegar a la cumbre» y no se recorta en ninguna máscara de launcher.</p>
+
+<div class="row">
+  <div class="panel">
+    <h2>Actual y propuesta</h2>
+    <div class="sub">Mismo concepto; mejor equilibrio y legibilidad en tamaños chicos.</div>
+    <div class="vs">
+      <div class="m"><img class="icon" src="icono-v1-actual.svg" width="168" style="border-radius:38px"><div class="cap">Actual (v1)</div></div>
+      <div class="m"><img class="icon" src="icono-v2.svg" width="168" style="border-radius:38px"><div class="cap">Propuesta (v2)</div></div>
+    </div>
+  </div>
+  <div class="panel">
+    <h2>Construcción del icono adaptativo</h2>
+    <div class="sub">Lienzo de 108 dp. Lo importante queda dentro del círculo seguro de 66 dp (línea naranja); el cuadrado de 72 dp es lo visible (punteado).</div>
+    <div class="row" style="gap:22px">
+      <div class="m"><div class="layer"><img src="icono-v2.svg"><svg class="guides" viewBox="0 0 108 108"><rect x="18" y="18" width="72" height="72" fill="none" stroke="#fff" stroke-width=".6" stroke-dasharray="2 2"/><circle cx="54" cy="54" r="33" fill="none" stroke="#FF8A00" stroke-width=".7"/></svg></div><div class="cap">Composición completa y guías</div></div>
+      <div class="m"><div class="layer" style="background:#0F403A"></div><div class="cap">Fondo: verde profundo #0F403A</div></div>
+      <div class="m"><div class="layer"><img src="icono-v2-monocromo.svg" style="opacity:.85"></div><div class="cap">Capa monocromática (temática)</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="row" style="margin-top:28px">
+  <div class="panel">
+    <h2>Máscaras de launcher</h2>
+    <div class="sub">Cada fabricante recorta el icono con una forma distinta; el diseño se mantiene en todas.</div>
+    <div class="masks">
+      <div class="m"><img src="icono-v2.svg" width="112" style="border-radius:50%"><div class="cap">Círculo (Pixel)</div></div>
+      <div class="m"><img src="icono-v2.svg" width="112" style="border-radius:32%"><div class="cap">Squircle (Samsung)</div></div>
+      <div class="m"><img src="icono-v2.svg" width="112" style="border-radius:18%"><div class="cap">Cuadrado redondeado</div></div>
+      <div class="m"><img src="icono-v2.svg" width="112" style="border-radius:50% 50% 50% 14%"><div class="cap">Gota</div></div>
+    </div>
+    <div class="sub" style="margin:26px 0 4px">Tamaños reales en pantalla (48, 36 y 24 dp) y notificación</div>
+    <div class="sizes">
+      <img src="icono-v2.svg" width="96" style="border-radius:50%">
+      <img src="icono-v2.svg" width="72" style="border-radius:50%">
+      <img src="icono-v2.svg" width="48" style="border-radius:50%">
+      <div style="display:flex;align-items:center;gap:10px;background:#1E2624;color:#fff;border-radius:16px;padding:12px 16px;margin-left:16px">
+        <svg width="22" height="22" viewBox="17 17 74 74"><use href="#mono"/><image href="icono-v2-monocromo.svg" x="0" y="0" width="108" height="108" style="filter:invert(1)"/></svg>
+        <div><div style="font:600 13px Inter">Cumbre · Recorrido en curso</div><div style="font-size:12px;color:#B9C6C1">7,8 km · 2:51:08 · te faltan 10,6 km</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="panel" style="display:flex;gap:26px">
+    <div>
+      <h2>En el launcher</h2>
+      <div class="sub">Pantalla de inicio clara.</div>
+      <div class="phone"><div class="scr" style="background:linear-gradient(170deg,#DCE7F0 0%,#E9E4DA 60%,#D9DFD3 100%)">
+        <div class="status"><span>9:41</span><span class="ms" style="font-size:18px">signal_cellular_alt</span></div>
+        <div style="text-align:center;margin:40px 0 46px"><div style="font:300 64px Inter;color:#1E2B33">9:41</div><div style="font:500 15px Inter;color:#3D4A50">martes 28 de octubre</div></div>
+        <div class="grid" id="g1"></div>
+        <div class="dock" style="background:rgba(255,255,255,.55)" id="d1"></div>
+      </div></div>
+    </div>
+    <div>
+      <h2>Iconos temáticos (Material You)</h2>
+      <div class="sub">Android 13+ usa la capa monocromática con el color del sistema.</div>
+      <div class="phone"><div class="scr" style="background:linear-gradient(170deg,#1D2A27,#26332F)">
+        <div class="status" style="color:#E6EFEB"><span>9:41</span><span class="ms" style="font-size:18px">signal_cellular_alt</span></div>
+        <div style="text-align:center;margin:40px 0 46px;color:#DCE8E3"><div style="font:300 64px Inter">9:41</div><div style="font:500 15px Inter;opacity:.8">martes 28 de octubre</div></div>
+        <div class="grid" id="g2"></div>
+        <div class="dock" style="background:rgba(255,255,255,.08)" id="d2"></div>
+      </div></div>
+    </div>
+    <div>
+      <h2>Pantalla de inicio de la app</h2>
+      <div class="sub">Splash del sistema (Android 12+).</div>
+      <div class="phone"><div class="scr" style="background:#0F403A;align-items:center;justify-content:center">
+        <img src="icono-v2.svg" width="192" style="border-radius:50%">
+      </div></div>
+    </div>
+  </div>
+</div>
+<script>
+const apps=[["call","Teléfono","#2E7D32"],["chat","Mensajes","#1565C0"],["photo_camera","Cámara","#455A64"],["image","Fotos","#C2185B"],["schedule","Reloj","#37474F"],["calendar_month","Calendario","#1976D2"],["cumbre","Cumbre",""],["folder","Archivos","#F9A825"],["mail","Correo","#D32F2F"],["cloud","Clima","#0288D1"],["calculate","Calculadora","#5D4037"],["settings","Ajustes","#546E7A"]];
+function render(id,themed){const g=document.getElementById(id);g.innerHTML=apps.map(([ic,l,c])=>{
+ let icon;
+ if(ic==="cumbre"){icon=themed?`<div class="gi" style="background:#C6E3D6"><img src="icono-v2-monocromo.svg" width="78" style="filter:invert(18%) sepia(30%) saturate(900%) hue-rotate(115deg) brightness(70%)"></div>`:`<img src="icono-v2.svg" width="60" style="border-radius:50%">`}
+ else icon=`<div class="gi" style="background:${themed?'#C6E3D6':c}"><span class="ms" style="color:${themed?'#123B33':'#fff'}">${ic}</span></div>`;
+ return `<div class="app" style="color:${themed?'#DCE8E3':'#1E2B33'}">${icon}${l}</div>`}).join('');}
+render('g1',false);render('g2',true);
+for(const [id,th] of [['d1',false],['d2',true]]){document.getElementById(id).innerHTML=["call","chat","photo_camera","public"].map(i=>`<div class="gi" style="width:56px;height:56px;background:${th?'#C6E3D6':'#ffffff'}"><span class="ms" style="color:${th?'#123B33':'#1E6B4B'}">${i}</span></div>`).join('')}
+</script></body></html>

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108">
+  <!-- Cumbre · icono v2. Lienzo de icono adaptativo 108×108; zona segura: círculo de 66 de diámetro centrado. -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="40%" r="68%">
+      <stop offset="0" stop-color="#16564B"/>
+      <stop offset="1" stop-color="#0F403A"/>
+    </radialGradient>
+  </defs>
+  <rect width="108" height="108" fill="url(#bg)"/>
+  <!-- macizo: pico principal (cumbre) y pico secundario -->
+  <path d="M22 82 L45 45 L56.5 62 L66 52 L86 82 Z" fill="#FFFFFF"/>
+  <!-- caras en sombra -->
+  <path d="M45 45 L56.5 62 L52 64.5 L48.5 58 L45 69 Z" fill="#0F403A" fill-opacity="0.14"/>
+  <path d="M66 52 L86 82 L78 79 L71 65 Z" fill="#0F403A" fill-opacity="0.11"/>
+  <!-- sendero que sube hasta la cumbre -->
+  <path d="M49 82 C55 79.5 59 76.5 55 72.5 C51 68.8 44.5 70 46.5 64.5 C48 60.5 52.5 59.5 47.5 52" fill="none" stroke="#A7C4B2" stroke-width="4.4" stroke-linecap="round"/>
+  <!-- marcador GPS sobre la cumbre -->
+  <path d="M45 21.5 C39.9 21.5 35.8 25.5 35.8 30.5 C35.8 37 45 43.6 45 43.6 C45 43.6 54.2 37 54.2 30.5 C54.2 25.5 50.1 21.5 45 21.5 Z" fill="#FF8A00"/>
+  <circle cx="45" cy="30.4" r="3.4" fill="#FFFFFF"/>
+</svg>
