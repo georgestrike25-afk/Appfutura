@@ -50,7 +50,7 @@ class ScreenshotsTest {
     }
 
     @Test
-    fun capturarPantallas() = runBlocking {
+    fun capturarPantallas() = runBlocking<Unit> {
         // 1. Primer uso: bienvenida e inicio sin rutas.
         launch()
         shot("00-bienvenida")

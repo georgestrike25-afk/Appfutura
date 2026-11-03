@@ -29,13 +29,13 @@ class RecordingBackgroundTest {
     private val manager get() = container.trackingManager
 
     @Before
-    fun setUp() = runBlocking {
+    fun setUp() = runBlocking<Unit> {
         if (manager.state.value.isActive) manager.discard()
         instrumentation.shell("input keyevent KEYCODE_WAKEUP")
     }
 
     @After
-    fun tearDown() = runBlocking {
+    fun tearDown() = runBlocking<Unit> {
         instrumentation.shell("dumpsys deviceidle unforce")
         instrumentation.shell("dumpsys battery reset")
         instrumentation.shell("input keyevent KEYCODE_WAKEUP")
@@ -63,7 +63,7 @@ class RecordingBackgroundTest {
     }
 
     @Test
-    fun grabacionLibreSigueConPantallaApagadaYDoze() = runBlocking {
+    fun grabacionLibreSigueConPantallaApagadaYDoze() = runBlocking<Unit> {
         manager.start(null)
         assertTrue("El servicio debe iniciar", serviceRunning())
         val first = waitForPoints(3, 60_000)
@@ -98,7 +98,7 @@ class RecordingBackgroundTest {
     }
 
     @Test
-    fun seguirRutaSigueConPantallaApagadaYDoze() = runBlocking {
+    fun seguirRutaSigueConPantallaApagadaYDoze() = runBlocking<Unit> {
         val routeId = TestRoute.ensureImported(container, instrumentation.targetContext.cacheDir)
         manager.start(routeId)
         assertNotNull(manager.state.value.route)
@@ -122,7 +122,7 @@ class RecordingBackgroundTest {
     }
 
     @Test
-    fun reinicioDelProcesoRestauraLaActividad() = runBlocking {
+    fun reinicioDelProcesoRestauraLaActividad() = runBlocking<Unit> {
         manager.start(null)
         waitForPoints(3, 60_000)
         val id = manager.state.value.activityId
