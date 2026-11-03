@@ -41,6 +41,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.cumbre.app.ui.platform.findActivity
 import com.cumbre.app.ui.theme.CumbreTheme
+import com.cumbre.app.ui.theme.StatusBarState
 import com.cumbre.app.ui.theme.Spacing
 
 /** Barra superior con el verde montaña de la marca. */
@@ -199,8 +200,6 @@ fun IconBadge(icon: ImageVector, container: Color, tint: Color, modifier: Modifi
     }
 }
 
-private var topBarsOnScreen = 0
-
 /**
  * Sobre la barra superior verde la hora y los íconos del sistema deben ser claros. Se cuentan las
  * barras compuestas a la vez (durante una transición hay dos) y al quedar ninguna se restaura el
@@ -213,14 +212,11 @@ private fun LightStatusBarIcons() {
     androidx.compose.runtime.DisposableEffect(view, dark) {
         val window = view.context.findActivity()?.window
         val controller = window?.let { androidx.core.view.WindowCompat.getInsetsController(it, view) }
-        topBarsOnScreen++
+        StatusBarState.topBars++
         controller?.isAppearanceLightStatusBars = false
         onDispose {
-            topBarsOnScreen--
-            if (topBarsOnScreen <= 0) {
-                topBarsOnScreen = 0
-                controller?.isAppearanceLightStatusBars = !dark
-            }
+            StatusBarState.topBars = (StatusBarState.topBars - 1).coerceAtLeast(0)
+            if (StatusBarState.topBars == 0) controller?.isAppearanceLightStatusBars = !dark
         }
     }
 }

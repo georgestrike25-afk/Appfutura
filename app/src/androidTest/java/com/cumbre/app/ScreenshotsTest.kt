@@ -83,7 +83,7 @@ class ScreenshotsTest {
 
         launch()
         shot("03-inicio")
-        tap("Mapa"); shot("04-mapa", 6_000)
+        tap("Mapa"); shot("04-mapa", 6_000); shot("04b-mapa-despues", 15_000)
         tap("Rutas"); shot("05-rutas")
         if (tap(TestRoute.NAME)) {
             shot("06-detalle-ruta", 5_000)
@@ -104,15 +104,16 @@ class ScreenshotsTest {
         val manager = container.trackingManager
         if (manager.state.value.isActive) manager.discard()
         manager.start(routeId)
-        launch(openTracking = true)
+        launch()
         val end = System.currentTimeMillis() + 60_000
         while (manager.state.value.follow == null && System.currentTimeMillis() < end) Thread.sleep(1_000)
         Thread.sleep(15_000)
-        shot("12-navegacion", 4_000)
-        launch()
         shot("13-inicio-grabando")
+        // La navegación se abre desde la tarjeta de actividad en curso, como lo haría el usuario.
+        tap("Volver a la navegación")
+        shot("12-navegacion", 8_000)
+        shot("12b-navegacion-mapa", 12_000)
         manager.pause()
-        launch(openTracking = true)
         shot("14-navegacion-pausa", 4_000)
         manager.resume()
         Thread.sleep(5_000)

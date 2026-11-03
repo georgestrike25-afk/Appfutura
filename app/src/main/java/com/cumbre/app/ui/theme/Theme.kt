@@ -155,12 +155,27 @@ fun CumbreTheme(themeMode: ThemeMode = ThemeMode.SYSTEM, content: @Composable ()
         ThemeMode.DARK -> true
     }
     val colors: ColorScheme = if (dark) DarkColors else LightColors
+    // Los íconos de la barra de estado siguen el tema de la app, no el del sistema.
+    val view = androidx.compose.ui.platform.LocalView.current
+    if (!view.isInEditMode) {
+        androidx.compose.runtime.SideEffect {
+            if (StatusBarState.topBars == 0) {
+                val window = (view.context as? android.app.Activity)?.window
+                if (window != null) androidx.core.view.WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !dark
+            }
+        }
+    }
     CompositionLocalProvider(
         LocalCumbreColors provides if (dark) DarkExtra else LightExtra,
         LocalIsDarkTheme provides dark,
     ) {
         MaterialTheme(colorScheme = colors, typography = CumbreTypography, shapes = CumbreShapes, content = content)
     }
+}
+
+/** Cantidad de barras superiores verdes visibles; sobre ellas los íconos del sistema van claros. */
+object StatusBarState {
+    var topBars = 0
 }
 
 object CumbreTheme {
