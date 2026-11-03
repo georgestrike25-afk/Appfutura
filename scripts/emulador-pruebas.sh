@@ -13,6 +13,9 @@ adb install -r -g "$TEST_APK"
 adb shell pm grant $PKG android.permission.ACCESS_FINE_LOCATION
 adb shell pm grant $PKG android.permission.ACCESS_COARSE_LOCATION
 adb shell pm grant $PKG android.permission.POST_NOTIFICATIONS
+# El emulador dibuja por software y a veces el lanzador tarda: sin esto aparece el cartel
+# «no responde» y tapa las capturas.
+adb shell settings put global hide_error_dialogs 1 || true
 adb shell settings put secure location_mode 3 || true
 adb shell cmd location set-location-enabled true || true
 

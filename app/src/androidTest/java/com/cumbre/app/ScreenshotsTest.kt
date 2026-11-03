@@ -29,9 +29,19 @@ class ScreenshotsTest {
     private val device = UiDevice.getInstance(instrumentation)
     private val outDir = File(context.getExternalFilesDir(null), "capturas").apply { mkdirs() }
 
+    /** Cierra el cartel «no responde» del emulador si apareciera: no es de Cumbre y tapa la captura. */
+    private fun dismissSystemDialogs() {
+        repeat(3) {
+            val wait = device.findObject(By.text("Wait")) ?: return
+            wait.click()
+            Thread.sleep(500)
+        }
+    }
+
     private fun shot(name: String, settleMillis: Long = 2_500) {
         device.waitForIdle()
         Thread.sleep(settleMillis)
+        dismissSystemDialogs()
         device.takeScreenshot(File(outDir, "$name.png"))
     }
 
