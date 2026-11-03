@@ -2,7 +2,7 @@
 # Se ejecuta dentro del emulador (workflow emulador.yml). Instala la app, simula GPS y corre:
 # 1) capturas de pantalla, 2) grabación en segundo plano y persistencia.
 set -u
-PKG=com.cumbre.app
+PKG=com.cumbre.app.debug
 OUT=emulador
 mkdir -p "$OUT/capturas"
 APK=app/build/outputs/apk/debug/app-debug.apk

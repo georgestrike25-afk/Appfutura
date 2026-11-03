@@ -43,7 +43,7 @@ class RecordingBackgroundTest {
     }
 
     private fun serviceRunning(): Boolean =
-        instrumentation.shell("dumpsys activity services com.cumbre.app").contains("TrackingService")
+        instrumentation.shell("dumpsys activity services ${app.packageName}").contains("TrackingService")
 
     private fun waitForPoints(min: Int, timeoutMillis: Long): Int {
         val end = System.currentTimeMillis() + timeoutMillis
