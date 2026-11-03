@@ -12,8 +12,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -111,14 +113,22 @@ fun SectionTitle(text: String, modifier: Modifier = Modifier) {
 
 /** Panel inferior del mapa con su "manija". */
 @Composable
-fun MapBottomPanel(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
+fun MapBottomPanel(
+    modifier: Modifier = Modifier,
+    extendIntoNavigationBar: Boolean = false,
+    content: @Composable ColumnScope.() -> Unit,
+) {
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
         color = MaterialTheme.colorScheme.surface,
         shadowElevation = 12.dp,
     ) {
-        Column(Modifier.padding(start = Spacing.l, end = Spacing.l, top = 10.dp, bottom = Spacing.m)) {
+        Column(
+            Modifier
+                .let { if (extendIntoNavigationBar) it.windowInsetsPadding(WindowInsets.navigationBars) else it }
+                .padding(start = Spacing.l, end = Spacing.l, top = 10.dp, bottom = Spacing.m),
+        ) {
             Box(
                 Modifier
                     .align(Alignment.CenterHorizontally)
@@ -219,4 +229,17 @@ private fun LightStatusBarIcons() {
             if (StatusBarState.topBars == 0) controller?.isAppearanceLightStatusBars = !dark
         }
     }
+}
+
+/** Degradado bajo la barra de estado para que la hora y los íconos se lean sobre el mapa. */
+@Composable
+fun MapTopScrim(modifier: Modifier = Modifier) {
+    val base = if (CumbreTheme.isDark) androidx.compose.ui.graphics.Color.Black else androidx.compose.ui.graphics.Color.White
+    val height = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + 16.dp
+    Box(
+        modifier
+            .fillMaxWidth()
+            .height(height)
+            .background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(base.copy(alpha = 0.78f), androidx.compose.ui.graphics.Color.Transparent))),
+    )
 }

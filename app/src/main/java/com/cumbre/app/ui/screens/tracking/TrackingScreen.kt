@@ -65,6 +65,7 @@ import com.cumbre.app.ui.components.ConfirmDialog
 import com.cumbre.app.ui.components.CumbreMap
 import com.cumbre.app.ui.components.EmptyState
 import com.cumbre.app.ui.components.MapBottomPanel
+import com.cumbre.app.ui.components.MapTopScrim
 import com.cumbre.app.ui.components.MapControlButton
 import com.cumbre.app.ui.components.MapZoomControls
 import com.cumbre.app.ui.components.MessageBanner
@@ -150,6 +151,7 @@ fun TrackingScreen(nav: NavController) {
             onController = { mapController = it },
         )
 
+        MapTopScrim(Modifier.align(Alignment.TopCenter))
         Column(
             Modifier.fillMaxWidth().windowInsetsPadding(WindowInsets.statusBars).padding(horizontal = 14.dp, vertical = 6.dp),
             verticalArrangement = Arrangement.spacedBy(Spacing.s),
@@ -204,7 +206,7 @@ fun TrackingScreen(nav: NavController) {
                     onClick = { follow = !follow },
                 )
             }
-            MapBottomPanel(Modifier.windowInsetsPadding(WindowInsets.navigationBars)) {
+            MapBottomPanel(extendIntoNavigationBar = true) {
                 TrackingPanel(
                     state = state,
                     altitude = fix?.altitudeMeters,

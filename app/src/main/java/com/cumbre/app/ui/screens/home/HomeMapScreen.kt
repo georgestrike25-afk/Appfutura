@@ -68,6 +68,7 @@ import com.cumbre.app.ui.LocalSettings
 import com.cumbre.app.ui.components.CumbreCard
 import com.cumbre.app.ui.components.CumbreMap
 import com.cumbre.app.ui.components.MapBottomPanel
+import com.cumbre.app.ui.components.MapTopScrim
 import com.cumbre.app.ui.components.MapControlButton
 import com.cumbre.app.ui.components.MessageBanner
 import com.cumbre.app.ui.components.MessageKind
@@ -152,6 +153,7 @@ fun HomeMapScreen(nav: NavController) {
             onController = { controller = it },
         )
 
+        MapTopScrim(Modifier.align(Alignment.TopCenter))
         Column(
             Modifier.fillMaxWidth().windowInsetsPadding(WindowInsets.statusBars).padding(horizontal = 14.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(Spacing.s),
