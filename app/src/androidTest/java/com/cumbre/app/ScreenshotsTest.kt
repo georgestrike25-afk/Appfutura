@@ -5,6 +5,7 @@ import android.net.Uri
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.By
+import androidx.test.uiautomator.StaleObjectException
 import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.Until
 import com.cumbre.app.data.ThemeMode
@@ -44,9 +45,17 @@ class ScreenshotsTest {
     }
 
     private fun tap(text: String, timeout: Long = 8_000): Boolean {
-        val o = device.wait(Until.findObject(By.text(text)), timeout) ?: return false
-        o.click()
-        return true
+        // La pantalla puede recomponerse entre buscar y tocar: se reintenta con un objeto nuevo.
+        repeat(4) {
+            val o = device.wait(Until.findObject(By.text(text)), timeout) ?: return false
+            try {
+                o.click()
+                return true
+            } catch (e: StaleObjectException) {
+                Thread.sleep(500)
+            }
+        }
+        return false
     }
 
     @Test

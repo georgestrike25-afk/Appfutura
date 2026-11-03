@@ -39,6 +39,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.cumbre.app.ui.platform.findActivity
 import com.cumbre.app.ui.theme.CumbreTheme
 import com.cumbre.app.ui.theme.Spacing
 
@@ -52,6 +53,7 @@ fun CumbreTopBar(
     bottom: @Composable ColumnScope.() -> Unit = {},
 ) {
     val extra = CumbreTheme.extra
+    LightStatusBarIcons()
     Column(
         modifier
             .fillMaxWidth()
@@ -194,5 +196,31 @@ fun ListRow(
 fun IconBadge(icon: ImageVector, container: Color, tint: Color, modifier: Modifier = Modifier) {
     Box(modifier.size(44.dp).clip(MaterialTheme.shapes.medium).background(container), contentAlignment = Alignment.Center) {
         Icon(icon, contentDescription = null, tint = tint)
+    }
+}
+
+private var topBarsOnScreen = 0
+
+/**
+ * Sobre la barra superior verde la hora y los íconos del sistema deben ser claros. Se cuentan las
+ * barras compuestas a la vez (durante una transición hay dos) y al quedar ninguna se restaura el
+ * color que corresponde al tema.
+ */
+@Composable
+private fun LightStatusBarIcons() {
+    val view = androidx.compose.ui.platform.LocalView.current
+    val dark = CumbreTheme.isDark
+    androidx.compose.runtime.DisposableEffect(view, dark) {
+        val window = view.context.findActivity()?.window
+        val controller = window?.let { androidx.core.view.WindowCompat.getInsetsController(it, view) }
+        topBarsOnScreen++
+        controller?.isAppearanceLightStatusBars = false
+        onDispose {
+            topBarsOnScreen--
+            if (topBarsOnScreen <= 0) {
+                topBarsOnScreen = 0
+                controller?.isAppearanceLightStatusBars = !dark
+            }
+        }
     }
 }

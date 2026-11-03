@@ -103,7 +103,9 @@ fun HomeMapScreen(nav: NavController) {
 
     val layers = rememberMapLayers()
     val tracking by container.trackingManager.state.collectAsStateWithLifecycle()
-    val recent by remember { container.routes.observeMostRecent() }.collectAsStateWithLifecycle(initialValue = null)
+    val allRoutes by remember { container.routes.observeRoutes() }.collectAsStateWithLifecycle(initialValue = emptyList())
+    // Última ruta abierta o, si todavía no se abrió ninguna, la última importada.
+    val recent = remember(allRoutes) { allRoutes.maxByOrNull { it.lastOpenedAt ?: it.createdAt } }
     val permission = rememberLocationPermission(container.settings)
 
     var showLocation by rememberSaveable { mutableStateOf(permission.hasAnyPermission) }
@@ -122,6 +124,17 @@ fun HomeMapScreen(nav: NavController) {
     LaunchedEffect(bearingNow) { bearingNow?.let { lastBearing = it.toFloat() } }
     val rotation = if (courseUp) lastBearing else 0f
 
+    // Al tener la primera posición el mapa se acerca a donde estás, en vez de mostrar el país entero.
+    var centered by rememberSaveable { mutableStateOf(false) }
+    val mapPoint = position?.point
+    LaunchedEffect(controller, mapPoint != null) {
+        val c = controller
+        if (!centered && c != null && mapPoint != null && !tracking.isActive) {
+            c.centerOn(mapPoint, 14)
+            centered = true
+        }
+    }
+
     Box(Modifier.fillMaxSize()) {
         CumbreMap(
             modifier = Modifier.fillMaxSize(),
@@ -132,6 +145,7 @@ fun HomeMapScreen(nav: NavController) {
             position = position,
             followPosition = follow,
             rotationDegrees = rotation,
+            fitBounds = if (position == null && !tracking.isActive) recent?.bounds else null,
             retainKey = "home",
             onWaypointTap = { w -> messenger(w.name ?: "Waypoint sin nombre") },
             onMapAvailability = { mapAvailable = it },

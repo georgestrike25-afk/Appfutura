@@ -16,9 +16,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.PauseCircle
-import androidx.compose.material.icons.rounded.SignalCellularAlt
-import androidx.compose.material.icons.rounded.SignalCellularAlt1Bar
-import androidx.compose.material.icons.rounded.SignalCellularAlt2Bar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -28,7 +25,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
@@ -176,23 +175,31 @@ fun StatusPill(state: TrackingPillState, modifier: Modifier = Modifier, text: St
     }
 }
 
-/** Etiqueta de dificultad estimada, con barras como indicador. */
+/** Etiqueta de dificultad estimada, con cuatro barras que se llenan según el nivel. */
 @Composable
 fun DifficultyTag(difficulty: Difficulty?, modifier: Modifier = Modifier) {
     difficulty ?: return
-    val icon = when (difficulty) {
-        Difficulty.EASY -> Icons.Rounded.SignalCellularAlt1Bar
-        Difficulty.MODERATE -> Icons.Rounded.SignalCellularAlt2Bar
-        Difficulty.HARD, Difficulty.VERY_HARD -> Icons.Rounded.SignalCellularAlt
-    }
     val dark = CumbreTheme.isDark
+    val tint = if (dark) Color(0xFFE8C88A) else Color(0xFF6B4E1E)
     Row(
         modifier.clip(MaterialTheme.shapes.extraSmall).background(if (dark) Color(0xFF3A2F1C) else Color(0xFFF1ECE2)).padding(horizontal = 8.dp, vertical = 3.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(5.dp),
     ) {
-        Icon(icon, contentDescription = null, tint = if (dark) Color(0xFFE8C88A) else Color(0xFF6B4E1E), modifier = Modifier.size(14.dp))
-        Text(difficulty.label, style = MaterialTheme.typography.labelSmall, color = if (dark) Color(0xFFE8C88A) else Color(0xFF6B4E1E))
+        Canvas(Modifier.size(width = 14.dp, height = 12.dp)) {
+            val barW = size.width * 0.17f
+            val gap = (size.width - 4 * barW) / 3f
+            for (i in 0 until 4) {
+                val h = size.height * (0.38f + 0.62f * i / 3f)
+                drawRoundRect(
+                    color = if (i < difficulty.level) tint else tint.copy(alpha = 0.25f),
+                    topLeft = Offset(i * (barW + gap), size.height - h),
+                    size = Size(barW, h),
+                    cornerRadius = CornerRadius(barW / 3f),
+                )
+            }
+        }
+        Text(difficulty.label, style = MaterialTheme.typography.labelSmall, color = tint)
     }
 }
 
