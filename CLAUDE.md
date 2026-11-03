@@ -41,9 +41,16 @@ compile/target 35, min 26. Fuentes Montserrat + Inter.
 ## Estado
 - Rediseño aprobado implementado (Inicio, Mapa, Rutas, Detalle, Importación, Navegación, Finalizada,
   Mapas offline, Ajustes). Core: 85 pruebas OK. CI Android: verde.
-- Workflow emulador: primera corrida falló por nombre de paquete de test (corregido).
+- Workflow emulador en verde: RecordingBackgroundTest (3), PersistenceTest (4) y ScreenshotsTest (1)
+  pasan en emulador API 34 con pantalla apagada + Doze. Capturas reales en la release `capturas-latest`.
+- Revisadas con capturas reales: Inicio (claro/oscuro), Mapa, Rutas, Detalle, Navegación, Pausa,
+  Actividad finalizada, Mapas offline, Ajustes. APK: release `debug-latest`.
+- El emulador (render por software) puede mostrar «Pixel Launcher isn't responding»: se oculta con
+  `hide_error_dialogs` y la prueba lo cierra; no es un fallo de Cumbre.
 
 ## Problemas conocidos / pendientes
 - Ahorro de batería por fabricante (MIUI, One UI…) no reproducible en emulador; probar en teléfono.
 - Textos de UI en código (no `strings.xml`). Datos sin cifrado propio.
-- Pendiente opcional: ilustración de estado vacío de Rutas, hoja previa de permiso GPS con diseño.
+- Pendiente opcional: ilustración de estado vacío de Rutas, hoja previa de permiso GPS con diseño,
+  revisar en capturas Importación (preview) y los estados de error de Mapas offline.
+- Probar en un teléfono real (batería por fabricante, GPS real a pie).
