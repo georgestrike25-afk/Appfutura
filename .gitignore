@@ -12,3 +12,6 @@ build/
 *.keystore
 *.jks
 core/.gradle/
+
+# Clave de PRUEBA para versiones de depuración (pública a propósito, ver app/build.gradle.kts)
+!app/debug.keystore

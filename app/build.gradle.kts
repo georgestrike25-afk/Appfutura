@@ -21,6 +21,18 @@ android {
         vectorDrawables { useSupportLibrary = true }
     }
 
+    // Firma fija para las versiones de depuración: sin ella cada compilación de CI usa una clave
+    // distinta y Android no deja instalar una versión sobre la anterior. Es una clave de PRUEBA,
+    // pública a propósito; no sirve para publicar (la versión release necesitará la suya).
+    signingConfigs {
+        getByName("debug") {
+            storeFile = file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
